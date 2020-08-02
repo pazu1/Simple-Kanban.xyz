@@ -2,33 +2,32 @@ import React from "react";
 import "./App.css";
 
 const API_URL = "api/"
-const JWT = "/jwt"
+const JWT = "jwt"
+const CARDS = "cards"
 
 class App extends React.Component {
     constructor() {
         super();
 
-        const storedJwt = localStorage.getItem("token")
-
         this.state = { 
-            apiResponse: "",
-            jwt: storedJwt || null // double check if this even works
+            apiResponse: ""
         };
     }
 
     async getJwt() {
-        fetch(API_URL+JWT)
-            .then((res) => res.json())
-            .then((res) => {
-                this.setState({ jwt: res })
-                console.log(res)
-            })
+        const res = await fetch(API_URL+JWT)
+        try {
+            const jwt = await res.clone().json()
+        } catch(err) {
+            const message = await res.text()
+            console.log(message)
+        }
     }
 
-    callAPI() {
-        fetch(API_URL)
+    async callAPI() {
+        fetch(API_URL+CARDS)
             .then((res) => res.text())
-            .then((res) => this.setState({ apiResponse: res }))
+            .then((res) => console.log(res))
             .catch((err) => err);
     }
 
@@ -41,13 +40,12 @@ class App extends React.Component {
             <div className="App">
                     <button
                         onClick={ () => {
-                            console.log("retrieve token")
                             this.getJwt()
                         }}
                     >Get token</button>
                     <button
                         onClick={ () => {
-                            console.log("call api")
+                            this.callAPI()
                         }}
                     >Call database</button>
             </div>
