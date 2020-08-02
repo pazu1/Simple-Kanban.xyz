@@ -1,11 +1,28 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
+const jwt = require("express-jwt");
+const jsonwebtoken = require("jsonwebtoken");
+
 const pool = require("../userdata/db");
 
-router.get("/", function(req, res, next) {
-    res.send("API is working properly");
+
+// Authorization
+const jwtSecret = "classified1234"; // This is to be a long true random generated key
+
+router.get("/jwt", (req, res) => { // Get token
+    const token = jsonwebtoken.sign({user: "testuser" }, jwtSecret) // TODO: use cookie-parser and send a cookie 
+    res.cookie( "token", token, { httpOnly: true })
+    res.json({ token })
 });
 
+router.use(jwt({ secret: jwtSecret, algorithms: ["HS256"] }));
+
+router.get("/", function (req, res ) {
+    res.send("API is online");
+});
+
+
+// card API
 // get all cards
 router.get("/cards", async (req, res) => {
     try {
@@ -57,8 +74,8 @@ router.post("/cards", async (req, res) => {
         const { description } = req.body;
         const state = "todo";
         const newCard = await pool.query(
-            "INSERT INTO card (description, current_state) VALUES ($1,$2) "+
-            "RETURNING description, current_state",
+            "INSERT INTO card (description, current_state) VALUES ($1,$2) " +
+                "RETURNING description, current_state",
             [description, state]
         );
         res.send(newCard.rows[0]);
