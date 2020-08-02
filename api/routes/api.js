@@ -12,13 +12,14 @@ const pool = require("../userdata/db");
 //
 
 // This is to be a strong password that is only stored in the server
-const jwtSecret = "secret"; 
+const jwtSecret = "secret";
 
-router.get("/jwt", async (req, res) => { 
-
+router.get("/jwt", async (req, res) => {
     // Handle on user already has access token
-    if (req.cookies.token) { 
-        return res.send("Requested cookie token, which the client already has.")
+    if (req.cookies.token) {
+        return res.send(
+            "Requested cookie token, which the client already has."
+        );
     }
 
     // User first time access -> create token
@@ -26,33 +27,39 @@ router.get("/jwt", async (req, res) => {
         "INSERT INTO k_user (user_id) VALUES (DEFAULT) RETURNING user_id"
     );
 
-    const user_id = newUser.rows[0].user_id
-    console.log(user_id)
+    const user_id = newUser.rows[0].user_id;
+    console.log(user_id);
 
-    const token = jsonwebtoken.sign({user_id: user_id }, jwtSecret) 
-    res.cookie( "token", token, { httpOnly: true })
-    res.json({ token })
+    const token = jsonwebtoken.sign({ user_id: user_id }, jwtSecret);
+    res.cookie("token", token, { httpOnly: true });
+    res.json({ token });
 });
 
-router.use(jwt({ secret: jwtSecret, getToken: req => req.cookies.token, algorithms: ["HS256"] }))
-
+router.use(
+    jwt({
+        secret: jwtSecret,
+        getToken: (req) => req.cookies.token,
+        algorithms: ["HS256"],
+    })
+);
 
 //
 // API for users
 //
 
-router.get("/", (req, res ) => {
+router.get("/", (req, res) => {
     res.send("API is accessible");
-    console.log(req.user)
+    console.log(req.user);
 });
 
 // get all cards for user
 router.get("/cards", async (req, res) => {
-    const { user_id} = req.user;
+    const { user_id } = req.user;
     try {
-        const allCards = await pool.query("SELECT cr.description "+ 
-            "FROM k_user ku "+
-            "INNER JOIN card cr ON cr.user_id = ku.user_id
+        const allCards = await pool.query(
+            "SELECT cr.description " +
+                "FROM k_user ku " +
+                "INNER JOIN card cr ON cr.user_id = ku.user_id"
         );
         if (!allCards.rows.length)
             return res.status(404).send("No cards found");
@@ -65,7 +72,7 @@ router.get("/cards", async (req, res) => {
 
 // get a card
 router.get("/cards/:id", async (req, res) => {
-    const { user_id} = req.user;
+    const { user_id } = req.user;
     const { id } = req.params;
     try {
         const card = await pool.query(
