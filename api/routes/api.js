@@ -6,6 +6,7 @@ const jsonwebtoken = require("jsonwebtoken");
 const pool = require("../userdata/db");
 
 // XXX = only for testing/unsafe => delete
+// TODO: add validation for incoming requests
 
 //
 // Authorization
@@ -18,11 +19,11 @@ router.get("/jwt", async (req, res) => {
     // Handle on user already has access token
     if (req.cookies.token) {
         return res.send(
-            "Requested cookie token, which the client already has."
+            "Requested token cookie, but the client already has one."
         );
     }
 
-    // User first time access -> create token
+    // User first time access -> add user to database
     const newUser = await pool.query(
         "INSERT INTO k_user (user_id) VALUES (DEFAULT) RETURNING user_id"
     );
@@ -44,7 +45,7 @@ router.use(
 );
 
 //
-// API for users
+// API for accessing user data
 //
 
 router.get("/", (req, res) => {
@@ -52,14 +53,16 @@ router.get("/", (req, res) => {
     console.log(req.user);
 });
 
-// get all cards for user
+// get all cards owned by user
 router.get("/cards", async (req, res) => {
-    const { user_id } = req.user;
     try {
+        const { user_id } = req.user;
         const allCards = await pool.query(
-            "SELECT cr.description " +
+            "SELECT cr.description, cr.card_id, cr.current_state " +
                 "FROM k_user ku " +
-                "INNER JOIN card cr ON cr.user_id = ku.user_id"
+                "INNER JOIN card cr ON cr.user_id = ku.user_id " +
+                "WHERE ku.user_id = $1",
+            [user_id]
         );
         if (!allCards.rows.length)
             return res.status(404).send("No cards found");
@@ -72,13 +75,14 @@ router.get("/cards", async (req, res) => {
 
 // get a card
 router.get("/cards/:id", async (req, res) => {
-    const { user_id } = req.user;
-    const { id } = req.params;
     try {
+        const { user_id } = req.user;
+        const { id } = req.params;
         const card = await pool.query(
-            "SELECT description, current_state FROM card " +
-                "WHERE card_id = $1",
-            [id]
+            "SELECT cr.description, cr.card_id, cr.current_state " +
+                "FROM k_user ku " +
+                "INNER JOIN card cr ON cr.user_id = ku.user_id " +
+                "WHERE ku.user_id = $1 AND cr.card_id = $2"[(user_id, id)]
         );
         if (!card.rows.length)
             return res.status(404).send("The card was not found");
@@ -91,11 +95,14 @@ router.get("/cards/:id", async (req, res) => {
 //  update a card
 router.put("/cards/:id", async (req, res) => {
     try {
+        const { user_id } = req.user;
         const { id } = req.params; // Where to update
         const { description } = req.body; // What is to be updated
         const newCard = await pool.query(
-            "UPDATE card SET " + "description = $1 WHERE card_id = $2",
-            [description, id]
+            "UPDATE card SET " +
+                "description = $1 " +
+                "WHERE card_id = $2 AND user_id = $3",
+            [description, id, user_id]
         );
         res.send("Card was updated");
     } catch (err) {
@@ -106,12 +113,14 @@ router.put("/cards/:id", async (req, res) => {
 // create a card
 router.post("/cards", async (req, res) => {
     try {
+        const { user_id } = req.user;
         const { description } = req.body;
         const state = "todo";
         const newCard = await pool.query(
-            "INSERT INTO card (description, current_state) VALUES ($1,$2) " +
+            "INSERT INTO card (description, current_state, user_id) " +
+                "VALUES ($1,$2, $3) " +
                 "RETURNING description, current_state",
-            [description, state]
+            [description, state, user_id]
         );
         res.send(newCard.rows[0]);
     } catch (err) {
@@ -122,17 +131,19 @@ router.post("/cards", async (req, res) => {
 // delete a card
 router.delete("/cards/:id", async (req, res) => {
     try {
+        const { user_id } = req.user;
         const { id } = req.params;
         const deleteCard = await pool.query(
-            "DELETE FROM card WHERE card_id = $1 RETURNING card_id",
-            [id]
+            "DELETE FROM card " +
+                "WHERE card_id = $1 AND user_id = $2 " +
+                "RETURNING card_id",
+            [id, user_id]
         );
         if (!deleteCard.rows.length)
             return res.status(404).send("The card was not found");
 
         res.send("Card was deleted.");
     } catch (err) {
-        console.log("ERR");
         console.error(err.message);
     }
 });
