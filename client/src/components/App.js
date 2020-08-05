@@ -1,6 +1,8 @@
 import React from "react";
-import "./App.css";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
+import "./App.css";
 import Kanban from "./Kanban";
 import SideBar from "./SideBar";
 
@@ -44,6 +46,7 @@ function getTestCards() {
 }
 
 class App extends React.Component {
+    // TODO: add all card and API operations to a context to reduce drilling
     constructor() {
         super();
 
@@ -52,6 +55,15 @@ class App extends React.Component {
             columns: {},
             cards: cards,
         };
+        this.changeCardColumn = this.changeCardColumn.bind(this);
+    }
+
+    changeCardColumn(id, toColumn, toIndex = 0) {
+        this.setState((prevState) => {
+            let copyCards = [...prevState.cards];
+            copyCards[copyCards.findIndex((c) => c.id == id)].column = toColumn;
+            return { cards: copyCards };
+        });
     }
 
     async getJwt() {
@@ -122,8 +134,15 @@ class App extends React.Component {
     render() {
         return (
             <div>
-                <Kanban columns={this.state.columns} cards={this.state.cards} />
-                <SideBar />
+                <DndProvider backend={HTML5Backend}>
+                    <Kanban
+                        columns={this.state.columns}
+                        cards={this.state.cards}
+                        removeArrayCard={this.removeArrayCard}
+                        changeCardColumn={this.changeCardColumn}
+                    />
+                    <SideBar />
+                </DndProvider>
             </div>
         );
     }

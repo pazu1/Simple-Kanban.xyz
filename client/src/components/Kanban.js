@@ -1,26 +1,32 @@
 import React, { useState } from "react";
 
 import "../styles/Kanban.scss";
-import Card from "./Card";
+import KCard from "./KCard";
+import KColumn from "./KColumn";
 
 function Kanban(props) {
-    let columns = Object.keys(props.columns).map((key, index) => {
+    // When a card is picked up it is stored here for the time
+    const [draggedCard, setDraggedCard] = useState(null);
+
+    const createDrag = () => {
+        console.log("dragging");
+        setDraggedCard(true);
+    };
+
+    let columns = Object.keys(props.columns).map((key) => {
         let colCards = props.cards
             .filter((card) => card.column === key)
-            .map((card) => {
-                return (
-                    <>
-                        <Card card={card}></Card>
-                    </>
-                );
+            .map((card, index) => {
+                // TODO: sort by card.index index here
+                card.index = index;
+                return <KCard card={card}></KCard>;
             });
 
         console.log(colCards);
         return (
-            <div className="column">
-                {key.toUpperCase()}
-                <div className="columnContent">{colCards}</div>
-            </div>
+            <KColumn changeCardColumn={props.changeCardColumn} columnName={key}>
+                {colCards}
+            </KColumn>
         );
         //props.columns[key]
     });
