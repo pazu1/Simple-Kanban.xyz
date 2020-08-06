@@ -32,9 +32,8 @@ function KColumn(props) {
         let b = cb.index;
         return a < b ? -1 : a > b ? 1 : 0;
     });
-    const badIndex = props.columnCards.filter((c) => c.index === 0).length > 1;
+    const badIndex = props.columnCards.filter((c) => c.index === 0).length > 1; // XXX: only needed with test cards
     let cardComponents = props.columnCards.map((card, index) => {
-        // TODO: sort by card.index here
         if (badIndex) {
             card.index = index;
         }
@@ -46,7 +45,7 @@ function KColumn(props) {
                 isDraggedOn={card.index === dropIndex && isOver}
             ></KCard>
         );
-    });
+    }); // TODO: push a +card component as last item
 
     return (
         <div className="column" ref={props.children.length === 0 ? drop : null}>

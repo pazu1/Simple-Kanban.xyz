@@ -3,9 +3,6 @@ import { useDrag } from "react-dnd";
 
 import { ItemTypes } from "../utils/const";
 
-// On click create a draggable component
-// On release check mouse position and append the column on mouse pos
-// If mouse not on other column then reset
 function KCard(props) {
     const [{ isDragging }, drag] = useDrag({
         item: {
@@ -21,9 +18,10 @@ function KCard(props) {
 
     return (
         <>
-            <button style={{ display: props.isDraggedOn ? null : "none" }}>
-                Drop here
-            </button>
+            <div
+                className="dropSpot"
+                style={{ height: props.isDraggedOn && !isDragging ? null : 0 }}
+            ></div>
             <div
                 ref={drag}
                 style={{ opacity: isDragging ? 0.4 : 1 }}
