@@ -17,17 +17,10 @@ function Kanban(props) {
     };
 
     let columnComponents = Object.keys(columns).map((key) => {
-        let colCards = cards
-            .filter((card) => card.column === key)
-            .map((card, index) => {
-                // TODO: sort by card.index here
-                card.index = index;
-                return <KCard card={card}></KCard>;
-            });
+        let colCards = cards.filter((card) => card.column === key);
 
-        console.log(colCards);
         return (
-            <KColumn changeCardColumn={changeCardColumn} columnName={key}>
+            <KColumn columnName={key} columnCards={colCards}>
                 {colCards}
             </KColumn>
         );

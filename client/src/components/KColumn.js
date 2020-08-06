@@ -1,27 +1,52 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import { useDrop } from "react-dnd";
+import KanbanContext from "./KanbanContext";
 
 import { ItemTypes } from "../utils/const";
+import KCard from "./KCard";
 import "../styles/Kanban.scss";
 
 function KColumn(props) {
-    const [{ isOver, offset }, drop] = useDrop({
+    const { changeCardColumn } = useContext(KanbanContext);
+    const [dropIndex, setDropIndex] = useState(-1);
+
+    const [{ isOver }, drop] = useDrop({
         accept: ItemTypes.CARD,
         drop: (item, monitor) => {
-            props.changeCardColumn(item.card.id, props.columnName);
+            changeCardColumn(item.card.id, props.columnName, dropIndex, () =>
+                setDropIndex(-1)
+            );
         },
         collect: (monitor) => ({
             isOver: !!monitor.isOver(),
-            offset: monitor.getSourceClientOffset(), // TODO: When applied to card can be used to drop the card in the correct index
         }),
     });
     let style = {};
     if (isOver) {
-        console.log(offset);
         style = {
             border: "3px solid #1C6EA4",
         };
     }
+    props.columnCards.sort((ca, cb) => {
+        let a = ca.index;
+        let b = cb.index;
+        return a < b ? -1 : a > b ? 1 : 0;
+    });
+    const badIndex = props.columnCards.filter((c) => c.index === 0).length > 1;
+    let cardComponents = props.columnCards.map((card, index) => {
+        // TODO: sort by card.index here
+        if (badIndex) {
+            card.index = index;
+        }
+        return (
+            <KCard
+                ref={drop}
+                card={card}
+                setDropIndex={setDropIndex}
+                isDraggedOn={card.index === dropIndex && isOver}
+            ></KCard>
+        );
+    });
 
     return (
         <div className="column" ref={props.children.length === 0 ? drop : null}>
@@ -31,7 +56,7 @@ function KColumn(props) {
                 style={style}
                 className="columnContent"
             >
-                {props.children}
+                {cardComponents}
             </div>
         </div>
     );

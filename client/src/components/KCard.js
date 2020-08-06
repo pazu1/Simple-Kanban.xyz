@@ -16,16 +16,25 @@ function KCard(props) {
             isDragging: monitor.isDragging(),
         }),
     });
-    let { description, id } = props.card;
+
+    let { description, id, index } = props.card;
 
     return (
-        <div
-            ref={drag}
-            style={{ opacity: isDragging ? 0.4 : 1 }}
-            className="card"
-        >
-            <span>{description}</span>
-        </div>
+        <>
+            <button style={{ display: props.isDraggedOn ? null : "none" }}>
+                Drop here
+            </button>
+            <div
+                ref={drag}
+                style={{ opacity: isDragging ? 0.4 : 1 }}
+                className="card"
+                onDragEnter={() => {
+                    props.setDropIndex(index);
+                }}
+            >
+                <span>{description}</span>
+            </div>
+        </>
     );
 }
 

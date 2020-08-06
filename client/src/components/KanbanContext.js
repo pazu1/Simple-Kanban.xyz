@@ -63,14 +63,27 @@ class KanbanContextProvider extends React.Component {
         this.setState({ columns: columns }, () => console.log(this.state));
     }
 
-    changeCardColumn(id, toColumn, toIndex = 0) {
+    changeCardColumn(id, toColumn, toIndex = 0, callback) {
+        console.log(toIndex);
         this.setState((prevState) => {
             let copyCards = [...prevState.cards];
-            copyCards[
-                copyCards.findIndex((c) => c.id === id)
-            ].column = toColumn;
+            // fix indices of other cards in column
+            let columnCards = copyCards.filter(
+                (c) => c.column === toColumn && c.index >= toIndex
+            );
+            columnCards.forEach((c) => {
+                // TODO: this isn't accurate
+                c.index += 1;
+            });
+
+            // set inserted card index
+            let card = copyCards[copyCards.findIndex((c) => c.id === id)];
+            card.column = toColumn;
+            card.index = toIndex;
+            console.log(copyCards);
+
             return { cards: copyCards };
-        });
+        }, callback());
     }
 
     // API access
