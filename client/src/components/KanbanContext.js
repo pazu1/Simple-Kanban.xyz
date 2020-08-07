@@ -63,7 +63,7 @@ class KanbanContextProvider extends React.Component {
         this.setState({ columns: columns }, () => console.log(this.state));
     }
 
-    changeCardColumn(id, toColumn, toIndex = 0, callback) {
+    changeCardColumn(id, toColumn, toIndex = 0) {
         console.log(toIndex);
         this.setState((prevState) => {
             let copyCards = [...prevState.cards];
@@ -83,7 +83,7 @@ class KanbanContextProvider extends React.Component {
             console.log(copyCards);
 
             return { cards: copyCards };
-        }, callback());
+        });
     }
 
     // API access

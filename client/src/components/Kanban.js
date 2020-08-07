@@ -19,11 +19,7 @@ function Kanban(props) {
     let columnComponents = Object.keys(columns).map((key) => {
         let colCards = cards.filter((card) => card.column === key);
 
-        return (
-            <KColumn columnName={key} columnCards={colCards}>
-                {colCards}
-            </KColumn>
-        );
+        return <KColumn columnName={key} columnCards={colCards} />;
         //props.columns[key]
     });
     return (
