@@ -5,7 +5,7 @@ import KanbanContext from "./KanbanContext";
 import { ItemTypes } from "../utils/const";
 
 function KCard(props) {
-    const { changeCardColumn } = useContext(KanbanContext);
+    const { changeCardColumn, cards } = useContext(KanbanContext);
     let { description, id, index, column } = props.card;
     const [dropAfterCard, setDropAfterCard] = useState(false);
     const ref = useRef(null);
@@ -38,8 +38,7 @@ function KCard(props) {
                 }
             }
 
-            console.log(droppedNewIndex);
-            changeCardColumn(item.card.id, column, droppedNewIndex);
+            changeCardColumn(item.card, column, droppedNewIndex);
         },
         collect: (monitor) => ({
             isOver: monitor.isOver(),
@@ -49,7 +48,6 @@ function KCard(props) {
                 return;
             }
             if (item.card.index === index && item.card.column === column) {
-                // hovering over itself
                 return;
             }
 
@@ -68,23 +66,19 @@ function KCard(props) {
     drag(drop(ref));
 
     return (
-        <>
+        <div ref={ref}>
             <div
                 className="dropSpot"
                 style={{ height: isOver && !dropAfterCard ? null : 0 }}
             ></div>
-            <div
-                ref={ref}
-                style={{ opacity: isDragging ? 0.4 : 1 }}
-                className="card"
-            >
+            <div style={{ opacity: isDragging ? 0.4 : 1 }} className="card">
                 <span>{description}</span>
             </div>
             <div
                 className="dropSpot"
                 style={{ height: isOver && dropAfterCard ? null : 0 }}
             ></div>
-        </>
+        </div>
     );
 }
 

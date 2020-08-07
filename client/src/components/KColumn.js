@@ -2,20 +2,13 @@ import React, { useContext, useState } from "react";
 
 import { ItemTypes } from "../utils/const";
 import KCard from "./KCard";
+import KanbanContext from "./KanbanContext";
 import "../styles/Kanban.scss";
 
 function KColumn(props) {
+    const { columns } = useContext(KanbanContext);
     let style = {};
-    props.columnCards.sort((ca, cb) => {
-        let a = ca.index;
-        let b = cb.index;
-        return a < b ? -1 : a > b ? 1 : 0;
-    });
-    const badIndex = props.columnCards.filter((c) => c.index === 0).length > 1; // XXX: only needed with test cards
-    let cardComponents = props.columnCards.map((card, index) => {
-        if (badIndex) {
-            card.index = index;
-        }
+    let cardComponents = columns[props.columnName].map((card, index) => {
         return <KCard card={card}></KCard>;
     });
 
