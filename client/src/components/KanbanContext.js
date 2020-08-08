@@ -1,5 +1,6 @@
 import React, { createContext } from "react";
 
+import { arraymove } from "../utils/const";
 const KanbanContext = createContext();
 
 const API_URL = "api/";
@@ -13,36 +14,31 @@ class Card {
         description,
         index, // used to save the order of the cards to DB
         column, // possible values eg. backlog, todo, doing...
-        urgency // integer between like 0 - 4
+        priority // integer between like 0 - 4
     ) {
         this.id = id;
         this.description = description;
         this.index = index;
         this.column = column;
-        this.urgency = urgency;
+        this.priority = priority;
     }
-}
-function arraymove(arr, fromIndex, toIndex) {
-    var element = arr[fromIndex];
-    arr.splice(fromIndex, 1);
-    arr.splice(toIndex, 0, element);
 }
 
 function getTestCards() {
     return [
-        new Card(1, "Do thing", 0, "todo"),
-        new Card(2, "Do stuff", 1, "todo"),
-        new Card(3, "afhgjgsf", 2, "todo"),
-        new Card(4, "Plan stuff", 0, "backlog"),
-        new Card(6, "Stuff being done", 0, "doing"),
-        new Card(9, "Stuff being done 2", 1, "doing"),
-        new Card(12, "Running tests", 0, "testing"),
-        new Card(43, "Running tests 2", 1, "testing"),
-        new Card(92, "Running tests 3", 2, "testing"),
-        new Card(99, "Done", 0, "done"),
-        new Card(95, "More done", 1, "done"),
-        new Card(52, "Done 2", 2, "done"),
-        new Card(32, "Done 3", 3, "done"),
+        new Card(1, "Do thing", 0, "todo", 1),
+        new Card(2, "Do stuff", 1, "todo", 1),
+        new Card(3, "afhgjgsf", 2, "todo", 1),
+        new Card(4, "Plan stuff", 0, "backlog", 2),
+        new Card(6, "Stuff being done", 0, "doing", 3),
+        new Card(9, "Stuff being done 2", 1, "doing", 1),
+        new Card(12, "Running tests", 0, "testing", 2),
+        new Card(43, "Running tests 2", 1, "testing", 1),
+        new Card(92, "Running tests 3", 2, "testing", 1),
+        new Card(99, "Done", 0, "done", 1),
+        new Card(95, "More done", 1, "done", 2),
+        new Card(52, "Done 2", 2, "done", 3),
+        new Card(32, "Done 3", 3, "done", 2),
     ];
 }
 

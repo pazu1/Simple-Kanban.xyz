@@ -2,14 +2,12 @@ import React, { useState, useContext, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 
 import KanbanContext from "./KanbanContext";
-import { ItemTypes } from "../utils/const";
+import { ItemTypes, PriorityLevels } from "../utils/const";
 
 function KCard(props) {
     const { changeCardPosition } = useContext(KanbanContext);
-    let { description, id, index, column } = props.card;
+    let { priority, description, id, index, column } = props.card;
     const [dropAfterCard, setDropAfterCard] = useState(false);
-    const [hoverOverSelf, setHoverOverSelf] = useState(false);
-    const [hoverExcept, setHoverExcept] = useState(false);
     const ref = useRef(null);
     const [disableDrop, setDisableDrop] = useState(true);
 
@@ -71,6 +69,7 @@ function KCard(props) {
     drag(drop(ref));
 
     let enableDrop = isOver && !disableDrop;
+    let priorityText = PriorityLevels[priority];
 
     return (
         <div>
@@ -83,6 +82,9 @@ function KCard(props) {
                 style={{ opacity: isDragging ? 0.4 : 1 }}
                 className="card"
             >
+                <div className={`priorityLabel--${priorityText}`}>
+                    {priorityText}
+                </div>
                 <span>{description}</span>
             </div>
             <div
