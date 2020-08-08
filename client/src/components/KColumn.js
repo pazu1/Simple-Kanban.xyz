@@ -17,10 +17,6 @@ function KColumn(props) {
             {props.columnName.toUpperCase()}
             <div style={style} className="columnContent">
                 {cardComponents}
-                <div
-                    className="dropSpot"
-                    style={{ height: false ? null : 0 }}
-                />
             </div>
             <div className="addCardBtn">
                 <span>Add card +</span>

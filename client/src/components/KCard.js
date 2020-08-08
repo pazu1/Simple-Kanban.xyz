@@ -5,10 +5,13 @@ import KanbanContext from "./KanbanContext";
 import { ItemTypes } from "../utils/const";
 
 function KCard(props) {
-    const { changeCardColumn, cards } = useContext(KanbanContext);
+    const { changeCardPosition } = useContext(KanbanContext);
     let { description, id, index, column } = props.card;
     const [dropAfterCard, setDropAfterCard] = useState(false);
+    const [hoverOverSelf, setHoverOverSelf] = useState(false);
+    const [hoverExcept, setHoverExcept] = useState(false);
     const ref = useRef(null);
+    const [disableDrop, setDisableDrop] = useState(true);
 
     const [{ isDragging }, drag] = useDrag({
         item: {
@@ -30,26 +33,28 @@ function KCard(props) {
 
             // if dropped in the same place
             if (item.card.column === column) {
-                if (
-                    item.card.index === droppedNewIndex ||
-                    (item.card.index === 0 && droppedNewIndex === 1)
-                ) {
+                if (item.card.index === droppedNewIndex) {
                     return;
+                }
+                if (droppedNewIndex > item.card.index) {
+                    droppedNewIndex -= 1;
                 }
             }
 
-            changeCardColumn(item.card, column, droppedNewIndex);
+            changeCardPosition(item.card, column, droppedNewIndex);
         },
         collect: (monitor) => ({
             isOver: monitor.isOver(),
         }),
         hover(item, monitor) {
-            if (!ref.current) {
-                return;
-            }
-            if (item.card.index === index && item.card.column === column) {
-                return;
-            }
+            if (
+                item.card.column === column &&
+                ((index - item.card.index === 1 && !dropAfterCard) ||
+                    (index - item.card.index === -1 && dropAfterCard) ||
+                    item.card.index === index)
+            ) {
+                setDisableDrop(true);
+            } else setDisableDrop(false);
 
             const hoverRect = ref.current.getBoundingClientRect();
             const hoverMidY = (hoverRect.bottom - hoverRect.top) / 2;
@@ -65,18 +70,24 @@ function KCard(props) {
 
     drag(drop(ref));
 
+    let enableDrop = isOver && !disableDrop;
+
     return (
-        <div ref={ref}>
+        <div>
             <div
                 className="dropSpot"
-                style={{ height: isOver && !dropAfterCard ? null : 0 }}
+                style={{ height: enableDrop && !dropAfterCard ? null : 0 }}
             ></div>
-            <div style={{ opacity: isDragging ? 0.4 : 1 }} className="card">
+            <div
+                ref={ref}
+                style={{ opacity: isDragging ? 0.4 : 1 }}
+                className="card"
+            >
                 <span>{description}</span>
             </div>
             <div
                 className="dropSpot"
-                style={{ height: isOver && dropAfterCard ? null : 0 }}
+                style={{ height: enableDrop && dropAfterCard ? null : 0 }}
             ></div>
         </div>
     );

@@ -22,6 +22,11 @@ class Card {
         this.urgency = urgency;
     }
 }
+function arraymove(arr, fromIndex, toIndex) {
+    var element = arr[fromIndex];
+    arr.splice(fromIndex, 1);
+    arr.splice(toIndex, 0, element);
+}
 
 function getTestCards() {
     return [
@@ -48,7 +53,7 @@ class KanbanContextProvider extends React.Component {
         this.state = {
             columns: {},
         };
-        this.changeCardColumn = this.changeCardColumn.bind(this);
+        this.changeCardPosition = this.changeCardPosition.bind(this);
     }
 
     componentDidMount() {
@@ -75,8 +80,22 @@ class KanbanContextProvider extends React.Component {
         this.setState({ columns: columns }, () => console.log(this.state));
     }
 
-    changeCardColumn(card, toColumn, toIndex = 0) {
-        console.log(toColumn);
+    changeCardPosition(card, toColumn, toIndex = 0) {
+        if (card.column === toColumn) {
+            this.setState((prevState) => {
+                let copyColumns = prevState.columns;
+                let array = copyColumns[toColumn];
+                let fromIndex = array.findIndex((c) => c === card);
+                arraymove(array, fromIndex, toIndex);
+
+                array.forEach((c, i) => {
+                    c.index = i;
+                });
+
+                return { columns: copyColumns };
+            });
+            return;
+        }
         this.setState(
             (prevState) => {
                 let oldColumn = card.column;
@@ -87,13 +106,18 @@ class KanbanContextProvider extends React.Component {
                 var i = copyColumns[oldColumn].indexOf(card);
                 copyColumns[oldColumn].splice(i, 1);
 
+                copyColumns[oldColumn].forEach((c, i) => {
+                    c.index = i;
+                });
+                copyColumns[toColumn].forEach((c, i) => {
+                    c.index = i;
+                });
+
                 return { columns: copyColumns };
             },
             () => console.log(this.state.columns[toColumn])
         );
     }
-
-    changeCardIndex(card, toIndex) {}
 
     //
     // API access
@@ -154,13 +178,13 @@ class KanbanContextProvider extends React.Component {
 
     render() {
         const { columns, cards } = this.state;
-        const { changeCardColumn } = this;
+        const { changeCardPosition } = this;
 
         return (
             <KanbanContext.Provider
                 value={{
                     columns,
-                    changeCardColumn,
+                    changeCardPosition,
                 }}
             >
                 {this.props.children}
