@@ -6,7 +6,7 @@ import { ItemTypes, PriorityLevels } from "../utils/const";
 
 function KCard(props) {
     const { changeCardPosition } = useContext(KanbanContext);
-    let { priority, description, id, index, column } = props.card;
+    const { priority, description, id, index, column } = props.card;
     const [dropAfterCard, setDropAfterCard] = useState(false);
     const ref = useRef(null);
     const [disableDrop, setDisableDrop] = useState(true);
@@ -46,6 +46,7 @@ function KCard(props) {
         }),
         hover(item, monitor) {
             if (
+                // Hovered over a drop zone of the same index
                 item.card.column === column &&
                 ((index - item.card.index === 1 && !dropAfterCard) ||
                     (index - item.card.index === -1 && dropAfterCard) ||
@@ -68,7 +69,7 @@ function KCard(props) {
 
     drag(drop(ref));
 
-    let enableDrop = isOver && !disableDrop;
+    const enableDrop = isOver && !disableDrop;
     let priorityText = PriorityLevels[priority];
 
     return (

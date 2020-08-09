@@ -7,6 +7,7 @@ import "../styles/Kanban.scss";
 
 function KColumn(props) {
     const { columns } = useContext(KanbanContext);
+    const [dropIndex, setDropIndex] = useState(0);
     let style = {};
     let cardComponents = columns[props.columnName].map((card, index) => {
         return <KCard card={card}></KCard>;
