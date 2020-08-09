@@ -13,6 +13,11 @@ function KColumn({ columnName }) {
     const [{ isOver }, drop] = useDrop({
         accept: ItemTypes.CARD,
         drop: (item) => {
+            if (cardComponents.length === 0) {
+                // No cards in column
+                changeCardPosition(item.card, columnName, 0);
+                return;
+            }
             if (dropIndex === -1) return;
             let finalIndex = dropIndex;
             if (item.card.index < dropIndex && item.card.column === columnName)
@@ -47,14 +52,19 @@ function KColumn({ columnName }) {
     });
 
     return (
-        <div className="column">
+        <div ref={cardComponents.length === 0 ? drop : null} className="column">
             {columnName.toUpperCase()}
-            <div ref={drop} style={style} className="columnContent">
+            <div
+                ref={cardComponents.length === 0 ? null : drop}
+                style={style}
+                className="columnContent"
+            >
                 <div
                     className="dropSpot"
                     style={{
                         height:
-                            dropIndex === 0 && !disableDrop && isOver
+                            (dropIndex === 0 && !disableDrop && isOver) ||
+                            (cardComponents.length === 0 && isOver)
                                 ? null
                                 : 0,
                     }}
