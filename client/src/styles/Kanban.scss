@@ -29,8 +29,8 @@ $accent:   #202052;
 }
 
 .dropSpot {
-    background: #78f;
-    height: 10px;
+    background: $bggray;
+    height: 50px;
     width: 100%;
     transition: all 150ms ease-in-out;
 

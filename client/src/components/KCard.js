@@ -1,20 +1,18 @@
-import React, { useState, useContext, useRef } from "react";
+import React, { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 
-import KanbanContext from "./KanbanContext";
 import { ItemTypes, PriorityLevels } from "../utils/const";
 
-function KCard(props) {
-    const { changeCardPosition } = useContext(KanbanContext);
-    const { priority, description, id, index, column } = props.card;
-    const [dropAfterCard, setDropAfterCard] = useState(false);
+function KCard({ card, setDisableDrop, setDropIndex }) {
+    const { priority, description, id, index, column } = card;
     const ref = useRef(null);
-    const [disableDrop, setDisableDrop] = useState(true);
+    let dropAfterCard = false;
+    let dropIndex = null;
 
     const [{ isDragging }, drag] = useDrag({
         item: {
             type: ItemTypes.CARD,
-            card: props.card,
+            card: card,
         },
         collect: (monitor) => ({
             isDragging: monitor.isDragging(),
@@ -23,61 +21,44 @@ function KCard(props) {
 
     const [{ isOver }, drop] = useDrop({
         accept: ItemTypes.CARD,
-        drop: (item, monitor) => {
-            let droppedNewIndex = index;
-            if (dropAfterCard) {
-                droppedNewIndex += 1;
-            }
-
-            // if dropped in the same place
-            if (item.card.column === column) {
-                if (item.card.index === droppedNewIndex) {
-                    return;
-                }
-                if (droppedNewIndex > item.card.index) {
-                    droppedNewIndex -= 1;
-                }
-            }
-
-            changeCardPosition(item.card, column, droppedNewIndex);
-        },
         collect: (monitor) => ({
             isOver: monitor.isOver(),
         }),
         hover(item, monitor) {
-            if (
-                // Hovered over a drop zone of the same index
-                item.card.column === column &&
-                ((index - item.card.index === 1 && !dropAfterCard) ||
-                    (index - item.card.index === -1 && dropAfterCard) ||
-                    item.card.index === index)
-            ) {
-                setDisableDrop(true);
-            } else setDisableDrop(false);
-
             const hoverRect = ref.current.getBoundingClientRect();
             const hoverMidY = (hoverRect.bottom - hoverRect.top) / 2;
             const mousePos = monitor.getClientOffset();
             const hoverClientY = mousePos.y - hoverRect.top;
             if (hoverClientY > hoverMidY) {
-                setDropAfterCard(true);
+                dropAfterCard = true;
             } else {
-                setDropAfterCard(false);
+                dropAfterCard = false;
             }
+
+            dropIndex = index;
+            if (dropAfterCard) {
+                dropIndex += 1;
+            }
+
+            if (column === item.card.column)
+                if (
+                    (index - item.card.index === 1 && !dropAfterCard) ||
+                    (index - item.card.index === -1 && dropAfterCard) ||
+                    item.card.index === index
+                ) {
+                    setDisableDrop(true);
+                    return;
+                }
+            setDisableDrop(false);
+            setDropIndex(dropIndex);
         },
     });
 
     drag(drop(ref));
-
-    const enableDrop = isOver && !disableDrop;
     let priorityText = PriorityLevels[priority];
 
     return (
         <div>
-            <div
-                className="dropSpot"
-                style={{ height: enableDrop && !dropAfterCard ? null : 0 }}
-            ></div>
             <div
                 ref={ref}
                 style={{ opacity: isDragging ? 0.4 : 1 }}
@@ -88,10 +69,6 @@ function KCard(props) {
                 </div>
                 <span>{description}</span>
             </div>
-            <div
-                className="dropSpot"
-                style={{ height: enableDrop && dropAfterCard ? null : 0 }}
-            ></div>
         </div>
     );
 }
