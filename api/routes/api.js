@@ -53,16 +53,20 @@ router.get("/", (req, res) => {
     console.log(req.user);
 });
 
-// get all cards owned by user
+// get all cards for a project
 router.get("/cards", async (req, res) => {
     try {
         const { user_id } = req.user;
+        const { project_id } = req.body;
+        console.log(project_id);
         const allCards = await pool.query(
-            "SELECT cr.description, cr.card_id, cr.current_state " +
-                "FROM k_user ku " +
-                "INNER JOIN card cr ON cr.user_id = ku.user_id " +
-                "WHERE ku.user_id = $1",
-            [user_id]
+            `
+            SELECT cr.description, cr.card_id, cr.k_column 
+                FROM project pr 
+                INNER JOIN card cr ON cr.project_id = pr.project_id 
+                AND pr.user_id = $1 AND pr.project_id = $2
+            `,
+            [user_id, project_id]
         );
         if (!allCards.rows.length)
             return res.status(404).send("No cards found");
@@ -79,10 +83,12 @@ router.get("/cards/:id", async (req, res) => {
         const { user_id } = req.user;
         const { id } = req.params;
         const card = await pool.query(
-            "SELECT cr.description, cr.card_id, cr.current_state " +
-                "FROM k_user ku " +
-                "INNER JOIN card cr ON cr.user_id = ku.user_id " +
-                "WHERE ku.user_id = $1 AND cr.card_id = $2"[(user_id, id)]
+            `
+            SELECT cr.description, cr.card_id, cr.k_column
+                FROM project pr 
+                INNER JOIN card cr ON cr.project_id = pr.project_id 
+                WHERE pr.user_id = $1 AND cr.card_id = $2`,
+            [user_id, id]
         );
         if (!card.rows.length)
             return res.status(404).send("The card was not found");
@@ -99,9 +105,11 @@ router.put("/cards/:id", async (req, res) => {
         const { id } = req.params; // Where to update
         const { description } = req.body; // What is to be updated
         const newCard = await pool.query(
-            "UPDATE card SET " +
-                "description = $1 " +
-                "WHERE card_id = $2 AND user_id = $3",
+            "UPDATE cr.card " +
+                "SET cr.description = $1 " +
+                "FROM card cr INNER JOIN project pr " +
+                "ON pr.project_id = cr.project_id " +
+                "WHERE cr.card_id = $2 and pr.user_id = $3",
             [description, id, user_id]
         );
         res.send("Card was updated");
@@ -114,15 +122,29 @@ router.put("/cards/:id", async (req, res) => {
 router.post("/cards", async (req, res) => {
     try {
         const { user_id } = req.user;
-        const { description } = req.body;
-        const state = "todo";
-        const newCard = await pool.query(
-            "INSERT INTO card (description, current_state, user_id) " +
-                "VALUES ($1,$2, $3) " +
-                "RETURNING description, current_state",
-            [description, state, user_id]
+        const project_id = parseInt(req.body.project_id);
+        const { description, column } = req.body;
+        console.log(project_id, req.user, description);
+
+        const canAddCard = await pool.query(
+            `
+            SELECT * FROM project pr 
+            WHERE pr.user_id = $1 AND pr.project_id = $2 
+            `,
+            [user_id, project_id]
         );
-        res.send(newCard.rows[0]);
+        if (!canAddCard.rows.length) {
+            return res.status(404).send("Project not found.");
+        }
+        const newCard = await pool.query(
+            `
+            INSERT INTO card (description, k_column, project_id)
+            VALUES ($1, $2, $3)
+            RETURNING description, k_column, card_id;
+        `,
+            [description, column, project_id]
+        );
+        return res.send(newCard.rows[0]);
     } catch (err) {
         console.error(err.message);
     }
@@ -134,9 +156,13 @@ router.delete("/cards/:id", async (req, res) => {
         const { user_id } = req.user;
         const { id } = req.params;
         const deleteCard = await pool.query(
-            "DELETE FROM card " +
-                "WHERE card_id = $1 AND user_id = $2 " +
-                "RETURNING card_id",
+            `
+            DELETE FROM card cr
+            USING project pr
+            WHERE cr.project_id = pr.project_id AND
+            pr.user_id = $2 AND cr.card_id = $1
+            RETURNING cr.card_id;
+            `,
             [id, user_id]
         );
         if (!deleteCard.rows.length)
