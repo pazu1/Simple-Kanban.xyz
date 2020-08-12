@@ -56,18 +56,25 @@ function KCard({ card, setDisableDrop, setDropIndex }) {
 
     drag(drop(ref));
     let priorityText = PriorityLevels[priority];
+    let displayContents = (
+        <>
+            <div className={`priorityLabel--${priorityText}`}>
+                {priorityText}
+            </div>
+            <span>{description}</span>
+        </>
+    );
+
+    if (isDragging) displayContents = <div className="draggedCardPlace"></div>;
 
     return (
         <div>
             <div
                 ref={ref}
                 style={{ opacity: isDragging ? 0.4 : 1 }}
-                className="card"
+                className={isDragging ? "card--dragging" : "card"}
             >
-                <div className={`priorityLabel--${priorityText}`}>
-                    {priorityText}
-                </div>
-                <span>{description}</span>
+                {displayContents}
             </div>
         </div>
     );

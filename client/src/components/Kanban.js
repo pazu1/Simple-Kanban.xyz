@@ -1,19 +1,22 @@
-import React, { useState, useContext } from "react";
+import React, { useContext } from "react";
 
 import "../styles/Kanban.scss";
 import KColumn from "./KColumn";
 import KanbanContext from "./KanbanContext";
 
 function Kanban(props) {
-    const { columns } = useContext(KanbanContext);
+    const { columns, getCards } = useContext(KanbanContext);
 
     let columnComponents = Object.keys(columns).map((key) => {
         return <KColumn columnName={key} />;
     });
     return (
-        <div className="kanban">
-            <div className="columnsContainer">{columnComponents}</div>
-        </div>
+        <>
+            <button onClick={() => getCards()}>Test API</button>
+            <div className="kanban">
+                <div className="columnsContainer">{columnComponents}</div>
+            </div>
+        </>
     );
 }
 

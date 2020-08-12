@@ -53,15 +53,34 @@ router.get("/", (req, res) => {
     console.log(req.user);
 });
 
+router.get("/projects", async (req, res) => {
+    try {
+        const { user_id } = req.user;
+        const allProjects = await pool.query(
+            `
+            SELECT project_id, project_name, k_columns
+                FROM project pr 
+                WHERE user_id = $1
+            `,
+            [user_id]
+        );
+        if (!allProjects.rows.length)
+            return res.status(404).send("No projects found");
+
+        res.send(allProjects.rows);
+    } catch (err) {
+        console.error(err.message);
+    }
+});
+
 // get all cards for a project
 router.get("/cards", async (req, res) => {
     try {
         const { user_id } = req.user;
-        const { project_id } = req.body;
-        console.log(project_id);
+        const { project_id } = req.query;
         const allCards = await pool.query(
             `
-            SELECT cr.description, cr.card_id, cr.k_column 
+            SELECT cr.description, cr.card_id, cr.k_column , cr.k_index, cr.k_priority
                 FROM project pr 
                 INNER JOIN card cr ON cr.project_id = pr.project_id 
                 AND pr.user_id = $1 AND pr.project_id = $2
@@ -118,12 +137,12 @@ router.put("/cards/:id", async (req, res) => {
     }
 });
 
-// create a card
+// add a card
 router.post("/cards", async (req, res) => {
     try {
         const { user_id } = req.user;
         const project_id = parseInt(req.body.project_id);
-        const { description, column } = req.body;
+        const { description, column, priority, index } = req.body;
         console.log(project_id, req.user, description);
 
         const canAddCard = await pool.query(
@@ -138,11 +157,11 @@ router.post("/cards", async (req, res) => {
         }
         const newCard = await pool.query(
             `
-            INSERT INTO card (description, k_column, project_id)
-            VALUES ($1, $2, $3)
+            INSERT INTO card (description, k_column, project_id, k_priority, k_index)
+            VALUES ($1, $2, $3, $4, $5)
             RETURNING description, k_column, card_id;
         `,
-            [description, column, project_id]
+            [description, column, project_id, priority, index]
         );
         return res.send(newCard.rows[0]);
     } catch (err) {

@@ -18,6 +18,7 @@ CREATE TABLE card(
     description VARCHAR(255) NOT NULL,
     k_column VARCHAR(100) NOT NULL, 
     k_index INT, --visual order of cards on client side
+    k_priority SMALLINT NOT NULL,
     project_id INT NOT NULL,
     PRIMARY KEY (card_id),
     FOREIGN KEY(project_id)
