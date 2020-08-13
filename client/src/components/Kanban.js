@@ -11,12 +11,10 @@ function Kanban(props) {
         return <KColumn columnName={key} />;
     });
     return (
-        <>
-            <button onClick={() => getCards()}>Test API</button>
-            <div className="kanban">
-                <div className="columnsContainer">{columnComponents}</div>
-            </div>
-        </>
+        <div className="kanban">
+            <span className="projectTitle">Project Title</span>
+            <div className="columnsContainer">{columnComponents}</div>
+        </div>
     );
 }
 

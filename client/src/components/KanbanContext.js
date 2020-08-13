@@ -37,12 +37,10 @@ class KanbanContextProvider extends React.Component {
     }
 
     async componentDidMount() {
-        //
-        // API calls
-        //
         await this.getJwt();
         let projects = await this.getProjects();
         if (!projects) return;
+        console.log(projects);
         let project = projects[0]; // TODO: this should probably be the project that the user last accessed, now it's just the first one in the list
         let resCards = await this.getCards(project.project_id);
         let cards = resCards
@@ -96,31 +94,28 @@ class KanbanContextProvider extends React.Component {
             });
             return;
         }
-        this.setState(
-            (prevState) => {
-                let oldColumn = card.column;
-                let copyColumns = prevState.columns;
-                copyColumns[toColumn].splice(toIndex, 0, card);
-                card.column = toColumn;
+        this.setState((prevState) => {
+            let oldColumn = card.column;
+            let copyColumns = prevState.columns;
+            copyColumns[toColumn].splice(toIndex, 0, card);
+            card.column = toColumn;
 
-                var i = copyColumns[oldColumn].indexOf(card);
-                copyColumns[oldColumn].splice(i, 1);
+            var i = copyColumns[oldColumn].indexOf(card);
+            copyColumns[oldColumn].splice(i, 1);
 
-                copyColumns[oldColumn].forEach((c, i) => {
-                    c.index = i;
-                });
-                copyColumns[toColumn].forEach((c, i) => {
-                    c.index = i;
-                });
+            copyColumns[oldColumn].forEach((c, i) => {
+                c.index = i;
+            });
+            copyColumns[toColumn].forEach((c, i) => {
+                c.index = i;
+            });
 
-                return { columns: copyColumns };
-            },
-            () => console.log(this.state.columns[toColumn])
-        );
+            return { columns: copyColumns };
+        });
     }
 
     //
-    // API access
+    // API calls
     //
     async getJwt() {
         const res = await fetch(API_URL + JWT);

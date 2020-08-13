@@ -5,6 +5,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import "./App.css";
 import Kanban from "./Kanban";
 import SideBar from "./SideBar";
+import TopBar from "./TopBar";
 import { KanbanContextProvider } from "./KanbanContext";
 
 function App(props) {
@@ -12,8 +13,9 @@ function App(props) {
         <div>
             <DndProvider backend={HTML5Backend}>
                 <KanbanContextProvider>
-                    <Kanban />
+                    <TopBar />
                     <SideBar />
+                    <Kanban />
                 </KanbanContextProvider>
             </DndProvider>
         </div>
