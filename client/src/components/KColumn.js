@@ -18,10 +18,12 @@ function KColumn({ columnName }) {
                 changeCardPosition(item.card, columnName, 0);
                 return;
             }
+            if (disableDrop) return;
             if (dropIndex === -1) return;
             let finalIndex = dropIndex;
             if (item.card.index < dropIndex && item.card.column === columnName)
                 finalIndex -= 1;
+            console.log(finalIndex);
             changeCardPosition(item.card, columnName, finalIndex);
             setDropIndex(-1);
         },
