@@ -1,0 +1,33 @@
+@import "./_theme.scss";
+
+.sidebar {
+    background: $bgwhite;
+    display: flex;
+    flex-direction: column;
+    justify-content: top;
+    z-index: 3;
+    width: 150px;
+    height: 100vh;
+    position: fixed;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+.sidebarBtn {
+    background: transparent;
+    color: $accent;
+    font-size: 0.9em;
+    height: 50px;
+}
+.sidebarBtnContainer {
+    width: 100%;
+}
+
+.ionIcon {
+    vertical-align: middle;
+    padding-right: 10px;
+    &--dropdown {
+        @extend .ionIcon;
+        float: right;
+        padding-right: 0px;
+    }
+}
