@@ -11,11 +11,11 @@ const PROJECTS = "projects";
 // This will correspond with the ones stored in the database
 class Card {
     constructor(
-        id, // corresponds to DB id, no reason to diplay to user
-        description,
+        id, // unique key
+        description, // text content
         index, // used to save the order of the cards to DB
         column, // possible values eg. backlog, todo, doing...
-        priority // integer between like 0 - 4
+        priority // integer between like 1 - 3
     ) {
         this.id = id;
         this.description = description;
@@ -79,39 +79,54 @@ class KanbanContextProvider extends React.Component {
     }
 
     changeCardPosition(card, toColumn, toIndex = 0) {
+        const ca = toColumn;
+        const cb = card.column;
+        const callAPI = () => {
+            if (ca !== cb)
+                this.updateColumns(
+                    this.state.columns[ca],
+                    this.state.columns[cb]
+                );
+        };
         if (card.column === toColumn) {
-            this.setState((prevState) => {
-                let copyColumns = prevState.columns;
-                let array = copyColumns[toColumn];
-                let fromIndex = array.findIndex((c) => c === card);
-                arraymove(array, fromIndex, toIndex);
+            this.setState(
+                (prevState) => {
+                    let copyColumns = prevState.columns;
+                    let array = copyColumns[toColumn];
+                    let fromIndex = array.findIndex((c) => c === card);
+                    arraymove(array, fromIndex, toIndex);
 
-                array.forEach((c, i) => {
+                    array.forEach((c, i) => {
+                        c.index = i;
+                    });
+
+                    return { columns: copyColumns };
+                },
+                () => callAPI()
+            );
+            return;
+        }
+        this.setState(
+            (prevState) => {
+                let oldColumn = card.column;
+                let copyColumns = prevState.columns;
+                copyColumns[toColumn].splice(toIndex, 0, card);
+                card.column = toColumn;
+
+                var i = copyColumns[oldColumn].indexOf(card);
+                copyColumns[oldColumn].splice(i, 1);
+
+                copyColumns[oldColumn].forEach((c, i) => {
+                    c.index = i;
+                });
+                copyColumns[toColumn].forEach((c, i) => {
                     c.index = i;
                 });
 
                 return { columns: copyColumns };
-            });
-            return;
-        }
-        this.setState((prevState) => {
-            let oldColumn = card.column;
-            let copyColumns = prevState.columns;
-            copyColumns[toColumn].splice(toIndex, 0, card);
-            card.column = toColumn;
-
-            var i = copyColumns[oldColumn].indexOf(card);
-            copyColumns[oldColumn].splice(i, 1);
-
-            copyColumns[oldColumn].forEach((c, i) => {
-                c.index = i;
-            });
-            copyColumns[toColumn].forEach((c, i) => {
-                c.index = i;
-            });
-
-            return { columns: copyColumns };
-        });
+            },
+            () => callAPI()
+        );
     }
 
     //
@@ -169,6 +184,19 @@ class KanbanContextProvider extends React.Component {
         };
 
         fetch(`${API_URL + CARDS}/${id}`, requestConf)
+            .then((res) => res.json())
+            .then((resJson) => console.log(resJson))
+            .catch((err) => err);
+    }
+
+    async updateColumns(columnA, columnB) {
+        const requestConf = {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ columnA: columnA, columnB: columnB }),
+        };
+
+        fetch(`${API_URL + CARDS}`, requestConf)
             .then((res) => res.json())
             .then((resJson) => console.log(resJson))
             .catch((err) => err);

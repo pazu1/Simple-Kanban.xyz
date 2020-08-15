@@ -2,8 +2,10 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("express-jwt");
 const jsonwebtoken = require("jsonwebtoken");
+const pgp = require("pg-promise")();
 
-const pool = require("../userdata/db");
+const pool = require("../userdata/db").pool;
+const pgpPool = require("../userdata/db").pgpPool;
 
 // XXX = only for testing/unsafe => delete
 // TODO: add validation for incoming requests
@@ -112,6 +114,30 @@ router.get("/cards/:id", async (req, res) => {
         if (!card.rows.length)
             return res.status(404).send("The card was not found");
         res.send(card.rows);
+    } catch (err) {
+        console.error(err.message);
+    }
+});
+
+// update two columns of cards
+router.put("/cards/", async (req, res) => {
+    try {
+        const { user_id } = req.user;
+        const { columnA, columnB } = req.body;
+        const updateData = columnA.concat(columnB).map((c) => {
+            return { card_id: c.id, k_index: c.index, k_column: c.column };
+        });
+        const columnSet = new pgp.helpers.ColumnSet(
+            ["?card_id", "k_index", "k_column"],
+            { table: "card" }
+        );
+        const update =
+            pgp.helpers.update(updateData, columnSet) +
+            " WHERE v.card_id = t.card_id";
+        console.log(update);
+        pgpPool.none(update).then(() => {
+            console.log("success");
+        });
     } catch (err) {
         console.error(err.message);
     }

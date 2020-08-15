@@ -1,11 +1,15 @@
 const Pool = require("pg").Pool;
+const pgp = require("pg-promise")();
 
-const pool = new Pool({
+const connection = {
     user: "pazu",
     password: "testPW",
     database: "kanban_test",
     host: "localhost",
     port: 5432,
-});
+};
 
-module.exports = pool;
+const pool = new Pool(connection);
+const pgpPool = pgp(connection);
+
+module.exports = { pool: pool, pgpPool: pgpPool };
