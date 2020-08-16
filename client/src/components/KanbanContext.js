@@ -82,11 +82,7 @@ class KanbanContextProvider extends React.Component {
         const ca = toColumn;
         const cb = card.column;
         const callAPI = () => {
-            if (ca !== cb)
-                this.updateColumns(
-                    this.state.columns[ca],
-                    this.state.columns[cb]
-                );
+            this.updateColumns(this.state.columns[ca], this.state.columns[cb]);
         };
         if (card.column === toColumn) {
             this.setState(

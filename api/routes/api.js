@@ -7,7 +7,6 @@ const pgp = require("pg-promise")();
 const pool = require("../userdata/db").pool;
 const pgpPool = require("../userdata/db").pgpPool;
 
-// XXX = only for testing/unsafe => delete
 // TODO: add validation for incoming requests
 
 //
@@ -121,6 +120,10 @@ router.get("/cards/:id", async (req, res) => {
 
 // update two columns of cards
 router.put("/cards/", async (req, res) => {
+    let response = {
+        type: "column update",
+        success: false,
+    };
     try {
         const { user_id } = req.user;
         const { columnA, columnB } = req.body;
@@ -134,32 +137,54 @@ router.put("/cards/", async (req, res) => {
         const update =
             pgp.helpers.update(updateData, columnSet) +
             " WHERE v.card_id = t.card_id";
-        console.log(update);
-        pgpPool.none(update).then(() => {
-            console.log("success");
-        });
+        pool.query(update)
+            .then(() => {
+                response.success = true;
+                res.json(response);
+            })
+            .catch((err) => {
+                console.log(err);
+                response.success = false;
+                res.json(response);
+            });
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
+        response.success = false;
+        res.json(response);
     }
 });
 
 //  update a card
 router.put("/cards/:id", async (req, res) => {
+    let response = {
+        type: "card update",
+        success: false,
+    };
     try {
         const { user_id } = req.user;
         const { id } = req.params; // Where to update
         const { description } = req.body; // What is to be updated
-        const newCard = await pool.query(
+        pool.query(
             "UPDATE cr.card " +
                 "SET cr.description = $1 " +
                 "FROM card cr INNER JOIN project pr " +
                 "ON pr.project_id = cr.project_id " +
                 "WHERE cr.card_id = $2 and pr.user_id = $3",
             [description, id, user_id]
-        );
-        res.send("Card was updated");
+        )
+            .then(() => {
+                response.success = true;
+                res.json(response);
+            })
+            .catch((err) => {
+                console.log(err);
+                response.success = false;
+                res.json(response);
+            });
     } catch (err) {
-        console.error(err.message);
+        console.log(err);
+        response.success = false;
+        res.json(response);
     }
 });
 
