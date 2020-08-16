@@ -30,7 +30,7 @@ class KanbanContextProvider extends React.Component {
         super();
         this.state = {
             columns: {},
-            project_id: 1,
+            project_id: null,
         };
         this.changeCardPosition = this.changeCardPosition.bind(this);
         this.getCards = this.getCards.bind(this);

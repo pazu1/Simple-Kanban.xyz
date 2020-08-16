@@ -126,6 +126,7 @@ router.put("/cards/", async (req, res) => {
     };
     try {
         const { user_id } = req.user;
+        console.log(user_id);
         const { columnA, columnB } = req.body;
         const updateData = columnA.concat(columnB).map((c) => {
             return { card_id: c.id, k_index: c.index, k_column: c.column };
@@ -136,8 +137,15 @@ router.put("/cards/", async (req, res) => {
         );
         const update =
             pgp.helpers.update(updateData, columnSet) +
-            " WHERE v.card_id = t.card_id";
-        pool.query(update)
+            ` 
+            WHERE v.card_id = t.card_id
+            AND t.project_id IN (
+                SELECT project_id FROM project
+                WHERE user_id = $1
+            )
+            `;
+        console.log(update);
+        pool.query(update, [user_id])
             .then(() => {
                 response.success = true;
                 res.json(response);
