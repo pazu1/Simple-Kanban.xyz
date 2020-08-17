@@ -6,7 +6,7 @@ import { ItemTypes } from "../utils/const";
 import KanbanContext from "./KanbanContext";
 import "../styles/Kanban.scss";
 
-function KColumn({ columnName }) {
+function KColumn({ columnName, cmToggle }) {
     const { columns, changeCardPosition } = useContext(KanbanContext);
     const [dropIndex, setDropIndex] = useState(-1);
     const [disableDrop, setDisableDrop] = useState(false);
@@ -39,6 +39,7 @@ function KColumn({ columnName }) {
                     setDropIndex={setDropIndex}
                     setDisableDrop={setDisableDrop}
                     card={card}
+                    cmToggle={cmToggle}
                 ></KCard>
                 <div
                     className="dropSpot"
@@ -73,9 +74,9 @@ function KColumn({ columnName }) {
                 ></div>
                 {cardComponents}
             </div>
-            <div className="addCardBtn">
+            <button className="addCardBtn">
                 <span>Add card +</span>
-            </div>
+            </button>
         </div>
     );
 }

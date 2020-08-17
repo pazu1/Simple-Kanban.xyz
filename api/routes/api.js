@@ -126,7 +126,6 @@ router.put("/cards/", async (req, res) => {
     };
     try {
         const { user_id } = req.user;
-        console.log(user_id);
         const { columnA, columnB } = req.body;
         const updateData = columnA.concat(columnB).map((c) => {
             return { card_id: c.id, k_index: c.index, k_column: c.column };
@@ -144,7 +143,6 @@ router.put("/cards/", async (req, res) => {
                 WHERE user_id = $1
             )
             `;
-        console.log(update);
         pool.query(update, [user_id])
             .then(() => {
                 response.success = true;
@@ -205,6 +203,7 @@ router.post("/cards", async (req, res) => {
         console.log(project_id, req.user, description);
 
         const canAddCard = await pool.query(
+            // TODO: make this into one single query
             `
             SELECT * FROM project pr 
             WHERE pr.user_id = $1 AND pr.project_id = $2 

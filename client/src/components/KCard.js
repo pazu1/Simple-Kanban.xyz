@@ -1,9 +1,11 @@
 import React, { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
+import { ContextMenuTrigger } from "react-contextmenu";
+import MdMore from "react-ionicons/lib/MdMore";
 
 import { ItemTypes, PriorityLevels } from "../utils/const";
 
-function KCard({ card, setDisableDrop, setDropIndex }) {
+function KCard({ card, setDisableDrop, setDropIndex, cmToggle, cmRef }) {
     const { priority, description, id, index, column } = card;
     const ref = useRef(null);
     let dropAfterCard = false;
@@ -53,14 +55,17 @@ function KCard({ card, setDisableDrop, setDropIndex }) {
             setDropIndex(dropIndex);
         },
     });
-
     drag(drop(ref));
+
     let priorityText = PriorityLevels[priority];
     let displayContents = (
         <>
             <div className={`priorityLabel--${priorityText}`}>
                 {priorityText}
             </div>
+            <button onClick={cmToggle} className="cardMenuBtn">
+                <MdMore className="ionIcon" fontSize={16} />
+            </button>
             <span>{description}</span>
         </>
     );
