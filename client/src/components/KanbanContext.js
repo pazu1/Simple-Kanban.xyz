@@ -101,6 +101,10 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
+    removeCard(card) {
+        console.log("del");
+    }
+
     // Clear state.unfinishedCard and call API to add it to the database.
     // Called after a new card is created or an existing card was edited.
     async finishCardEdit(description) {
@@ -108,12 +112,17 @@ class KanbanContextProvider extends React.Component {
         let copyColumns = this.state.columns;
         editedCard.description = description;
         editedCard.finished = true;
+        if (editedCard.id !== -1) {
+            // TODO: call API card update instead of post
+            return;
+        }
 
         // API call to add card and get id
         let response = await this.postCard(editedCard);
         console.log(response);
         if (!response) {
             console.log("Error posting card");
+            this.cancelCardEdit();
             return;
         }
         editedCard.id = response.card_id;
@@ -239,8 +248,7 @@ class KanbanContextProvider extends React.Component {
         };
 
         try {
-            let res = await fetch(API_URL + CARDS, requestConf);
-            let resJson = res.json();
+            let resJson = await fetch(API_URL + CARDS, requestConf).json();
             return resJson;
         } catch (err) {
             return false;
@@ -272,11 +280,14 @@ class KanbanContextProvider extends React.Component {
             .catch((err) => err);
     }
 
-    async updateCard(id, description) {
+    async updateCard(id, description, priority) {
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ description: description }),
+            body: JSON.stringify({
+                description: description,
+                priority: priority,
+            }),
         };
 
         fetch(`${API_URL + CARDS}/${id}`, requestConf)

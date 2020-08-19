@@ -96,7 +96,13 @@ function KCard({ card, setDisableDrop, setDropIndex, cmToggle }) {
                 <div className={`priorityLabel--${priorityText}`}>
                     {priorityText}
                 </div>
-                <button onClick={cmToggle} className="cardMenuBtn">
+                <button
+                    onClick={(e) => {
+                        let pos = ref.current.getBoundingClientRect();
+                        cmToggle(pos, true);
+                    }}
+                    className="cardMenuBtn"
+                >
                     <MdMore className="ionIcon" fontSize={16} />
                 </button>
                 <span>{description}</span>
