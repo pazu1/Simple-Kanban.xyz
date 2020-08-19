@@ -11,17 +11,19 @@ const PROJECTS = "projects";
 // This will correspond with the ones stored in the database
 class Card {
     constructor(
-        id, // unique key
+        id, // unique key, -1 if has not been fetched from the API
         description, // text content
         index, // used to save the order of the cards to DB
         column, // possible values eg. backlog, todo, doing...
-        priority // integer between like 1 - 3
+        priority, // integer between like 1 - 3
+        finished = true // false if card is still being created or edited
     ) {
         this.id = id;
         this.description = description;
         this.index = index;
         this.column = column;
         this.priority = priority;
+        this.finished = finished;
     }
 }
 
@@ -31,9 +33,12 @@ class KanbanContextProvider extends React.Component {
         this.state = {
             columns: {},
             project_id: null,
+            unfinishedCard: null, // A card that is being edited is stored here
         };
         this.changeCardPosition = this.changeCardPosition.bind(this);
-        this.getCards = this.getCards.bind(this);
+        this.addCard = this.addCard.bind(this);
+        this.finishCardEdit = this.finishCardEdit.bind(this);
+        this.cancelCardEdit = this.cancelCardEdit.bind(this);
     }
 
     async componentDidMount() {
@@ -78,6 +83,68 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
+    // Add a rendered card (to the current project)
+    addCard(column, index) {
+        this.setState((prevState) => {
+            let copyColumns = prevState.columns;
+            let copyColumn = copyColumns[column];
+            const card = new Card(
+                -1,
+                "!!!CREATED_CARD!!!",
+                index,
+                column,
+                1,
+                false
+            );
+            copyColumns[column].push(card);
+            return { columns: copyColumns, unfinishedCard: card };
+        });
+    }
+
+    // Clear state.unfinishedCard and call API to add it to the database.
+    // Called after a new card is created or an existing card was edited.
+    async finishCardEdit(description) {
+        let editedCard = this.state.unfinishedCard;
+        let copyColumns = this.state.columns;
+        editedCard.description = description;
+        editedCard.finished = true;
+
+        // API call to add card and get id
+        let response = await this.postCard(editedCard);
+        console.log(response);
+        if (!response) {
+            console.log("Error posting card");
+            return;
+        }
+        editedCard.id = response.card_id;
+        this.setState({
+            unfinishedCard: null,
+            columns: copyColumns,
+        });
+    }
+
+    // Remove card from column if it was a blank one not in the DB (id=-1).
+    // Otherwise set it to finished and leave unchanged.
+    cancelCardEdit() {
+        if (!this.state.unfinishedCard) return;
+        let cancelledCard = this.state.unfinishedCard;
+        let copyColumns = this.state.columns;
+        if (cancelledCard.id !== -1) {
+            cancelledCard.finished = true;
+            this.setState({
+                unfinishedCard: null,
+                columns: copyColumns,
+            });
+            return;
+        }
+        copyColumns[cancelledCard.column].pop();
+        this.setState({
+            unfinishedCard: null,
+            columns: copyColumns,
+        });
+    }
+
+    // Change card index and/or column
     changeCardPosition(card, toColumn, toIndex = 0) {
         const ca = toColumn;
         const cb = card.column;
@@ -157,20 +224,27 @@ class KanbanContextProvider extends React.Component {
         }
     }
 
-    async addCard(description, column) {
+    async postCard(card) {
+        let { description, column, index, priority } = card;
         const requestConf = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 description: description,
+                index: index,
                 column: column,
+                priority: priority,
                 project_id: this.state.project_id,
             }),
         };
 
-        fetch(API_URL + CARDS, requestConf)
-            .then((res) => res.json())
-            .then((resJson) => console.log(resJson));
+        try {
+            let res = await fetch(API_URL + CARDS, requestConf);
+            let resJson = res.json();
+            return resJson;
+        } catch (err) {
+            return false;
+        }
     }
 
     async deleteCard(id) {
@@ -212,13 +286,23 @@ class KanbanContextProvider extends React.Component {
     }
 
     render() {
-        const { columns, cards } = this.state;
-        const { changeCardPosition, getCards } = this;
+        const { columns, unfinishedCard } = this.state;
+        const {
+            addCard,
+            finishCardEdit,
+            cancelCardEdit,
+            changeCardPosition,
+            getCards,
+        } = this;
 
         return (
             <KanbanContext.Provider
                 value={{
                     columns,
+                    unfinishedCard,
+                    addCard,
+                    finishCardEdit,
+                    cancelCardEdit,
                     changeCardPosition,
                     getCards,
                 }}

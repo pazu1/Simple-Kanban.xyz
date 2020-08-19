@@ -217,7 +217,7 @@ router.post("/cards", async (req, res) => {
             `
             INSERT INTO card (description, k_column, project_id, k_priority, k_index)
             VALUES ($1, $2, $3, $4, $5)
-            RETURNING description, k_column, card_id;
+            RETURNING card_id;
         `,
             [description, column, project_id, priority, index]
         );

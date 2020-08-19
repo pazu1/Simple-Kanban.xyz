@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { ContextMenu, ContextMenuTrigger, MenuItem } from "react-contextmenu";
 
 import "../styles/Kanban.scss";
@@ -6,9 +6,11 @@ import KColumn from "./KColumn";
 import KanbanContext from "./KanbanContext";
 
 function Kanban(props) {
-    const { columns, getCards } = useContext(KanbanContext);
+    const { columns } = useContext(KanbanContext);
+    const [cmCard, setCmCard] = useState(null);
     let contextTrigger = null;
-    const toggleCMenu = (e) => {
+    const toggleCMenu = (e, card = null) => {
+        setCmCard(card);
         if (contextTrigger) {
             contextTrigger.handleContextClick(e);
         }
@@ -19,12 +21,16 @@ function Kanban(props) {
     });
     return (
         <div className="kanban">
-            <ContextMenuTrigger id="test" ref={(c) => (contextTrigger = c)} />
-            <ContextMenu id="test">
-                <MenuItem>Edit</MenuItem>
-                <MenuItem>Delete</MenuItem>
-                <MenuItem>Archive</MenuItem>
-                <MenuItem>Cancel</MenuItem>
+            <ContextMenuTrigger id="cardCM" ref={(c) => (contextTrigger = c)} />
+            <ContextMenu id="cardCM">
+                <div className="cardContextMenu">
+                    <MenuItem>Edit</MenuItem>
+                    <MenuItem>Delete</MenuItem>
+                    <MenuItem>Archive</MenuItem>
+                    <MenuItem>Priority ></MenuItem> {/*submenu*/}
+                    <hr />
+                    <MenuItem>Cancel</MenuItem>
+                </div>
             </ContextMenu>
             <span className="projectTitle">Project Title</span>
             <div className="columnsContainer">{columnComponents}</div>

@@ -7,7 +7,13 @@ import KanbanContext from "./KanbanContext";
 import "../styles/Kanban.scss";
 
 function KColumn({ columnName, cmToggle }) {
-    const { columns, changeCardPosition } = useContext(KanbanContext);
+    const {
+        addCard,
+        cancelCardEdit,
+        unfinishedCard,
+        columns,
+        changeCardPosition,
+    } = useContext(KanbanContext);
     const [dropIndex, setDropIndex] = useState(-1);
     const [disableDrop, setDisableDrop] = useState(false);
     const [{ isOver }, drop] = useDrop({
@@ -74,9 +80,17 @@ function KColumn({ columnName, cmToggle }) {
                 ></div>
                 {cardComponents}
             </div>
-            <button className="addCardBtn">
-                <span>Add card +</span>
-            </button>
+            {unfinishedCard === null || unfinishedCard.column !== columnName ? (
+                <button
+                    className="addCardBtn"
+                    onClick={() => {
+                        cancelCardEdit();
+                        addCard(columnName, cardComponents.length);
+                    }}
+                >
+                    <span>Add card +</span>
+                </button>
+            ) : null}
         </div>
     );
 }

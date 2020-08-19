@@ -1,13 +1,18 @@
-import React, { useRef } from "react";
+import React, { useState, useRef, useContext } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { ContextMenuTrigger } from "react-contextmenu";
 import MdMore from "react-ionicons/lib/MdMore";
+import MdCheckmark from "react-ionicons/lib/MdCheckmark";
+import MdClose from "react-ionicons/lib/MdClose";
 
 import { ItemTypes, PriorityLevels } from "../utils/const";
+import KanbanContext from "./KanbanContext";
 
-function KCard({ card, setDisableDrop, setDropIndex, cmToggle, cmRef }) {
+function KCard({ card, setDisableDrop, setDropIndex, cmToggle }) {
+    const { finishCardEdit, cancelCardEdit } = useContext(KanbanContext);
     const { priority, description, id, index, column } = card;
     const ref = useRef(null);
+    let formRef = useRef(null);
+    const [editFormDesc, setEditFormDesc] = useState();
     let dropAfterCard = false;
     let dropIndex = null;
 
@@ -55,7 +60,14 @@ function KCard({ card, setDisableDrop, setDropIndex, cmToggle, cmRef }) {
             setDropIndex(dropIndex);
         },
     });
-    drag(drop(ref));
+
+    if (isDragging) {
+        cancelCardEdit();
+    }
+
+    const handleFormSubmit = () => {
+        finishCardEdit(editFormDesc);
+    };
 
     let priorityText = PriorityLevels[priority];
     let displayContents = (
@@ -63,12 +75,34 @@ function KCard({ card, setDisableDrop, setDropIndex, cmToggle, cmRef }) {
             <div className={`priorityLabel--${priorityText}`}>
                 {priorityText}
             </div>
-            <button onClick={cmToggle} className="cardMenuBtn">
-                <MdMore className="ionIcon" fontSize={16} />
-            </button>
-            <span>{description}</span>
+            <span>
+                <form ref={(e) => (formRef = e)} onSubmit={handleFormSubmit}>
+                    <textarea
+                        autoFocus
+                        className="cardTextArea"
+                        type="text"
+                        onChange={(e) => setEditFormDesc(e.target.value)}
+                        value={editFormDesc}
+                    />
+                </form>
+            </span>
         </>
     );
+
+    if (card.finished) {
+        drag(drop(ref));
+        displayContents = (
+            <>
+                <div className={`priorityLabel--${priorityText}`}>
+                    {priorityText}
+                </div>
+                <button onClick={cmToggle} className="cardMenuBtn">
+                    <MdMore className="ionIcon" fontSize={16} />
+                </button>
+                <span>{description}</span>
+            </>
+        );
+    }
 
     if (isDragging) displayContents = <div className="draggedCardPlace"></div>;
 
@@ -77,10 +111,36 @@ function KCard({ card, setDisableDrop, setDropIndex, cmToggle, cmRef }) {
             <div
                 ref={ref}
                 style={{ opacity: isDragging ? 0.4 : 1 }}
-                className={isDragging ? "card--dragging" : "card"}
+                className={
+                    isDragging
+                        ? "card--dragging"
+                        : !card.finished
+                        ? "card--editing"
+                        : "card"
+                }
             >
                 {displayContents}
             </div>
+            {!card.finished ? (
+                <>
+                    <button
+                        onClick={cancelCardEdit}
+                        className="cancelSubmitButton"
+                    >
+                        <MdClose className="circleIonIcon" color={"#fff"} />
+                    </button>
+                    <button
+                        onClick={() => {
+                            formRef.dispatchEvent(new Event("submit"));
+                        }}
+                        style={{ background: !editFormDesc ? "#a1a1a1" : null }}
+                        disabled={!editFormDesc}
+                        className="submitButton"
+                    >
+                        <MdCheckmark className="circleIonIcon" color={"#fff"} />
+                    </button>
+                </>
+            ) : null}
         </div>
     );
 }
