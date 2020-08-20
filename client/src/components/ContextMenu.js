@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import "../styles/ContextMenu.scss";
 
 class ContextMenu extends React.Component {
@@ -113,9 +113,6 @@ export function SubMenu(props) {
 
         setSmPos({ x: x, y: y });
     };
-    useEffect(() => {
-        if (showMenu) repositionMenu();
-    }, [showMenu]);
 
     const { title } = props;
     return (
@@ -124,25 +121,25 @@ export function SubMenu(props) {
                 ref={ref}
                 className="contextMenu--option"
                 onMouseEnter={() => {
+                    repositionMenu();
                     setShowMenu(true);
                 }}
                 onMouseLeave={() => setShowMenu(false)}
             >
                 {title}
                 <span>></span>
-                {showMenu ? (
-                    <div
-                        ref={submenuRef}
-                        className="contextMenu--sub"
-                        style={{
-                            position: "fixed",
-                            left: smPos.x,
-                            top: smPos.y,
-                        }}
-                    >
-                        {props.children}
-                    </div>
-                ) : null}
+                <div
+                    ref={submenuRef}
+                    className="contextMenu--sub"
+                    style={{
+                        position: "fixed",
+                        left: smPos.x,
+                        top: smPos.y,
+                        opacity: showMenu ? 1 : 0,
+                    }}
+                >
+                    {props.children}
+                </div>
             </div>
         </>
     );
