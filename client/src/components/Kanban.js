@@ -26,13 +26,14 @@ function Kanban(props) {
                 <MenuItem>Edit</MenuItem>
                 <MenuItem>Delete</MenuItem>
                 <SubMenu title="Priority">
-                    <MenuItem>Low</MenuItem>
-                    <MenuItem>Medium</MenuItem>
-                    <MenuItem>High</MenuItem>
+                    <MenuItem selectable>Low</MenuItem>
+                    <MenuItem selectable>Medium</MenuItem>
+                    <MenuItem selectable>High</MenuItem>
                 </SubMenu>
                 <MenuSeparator />
                 <MenuItem>Cancel</MenuItem>
             </ContextMenu>
+
             <span className="projectTitle">Project Title</span>
             <div className="columnsContainer">{columnComponents}</div>
         </div>

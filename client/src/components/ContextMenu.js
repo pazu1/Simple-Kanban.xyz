@@ -59,7 +59,8 @@ class ContextMenu extends React.Component {
 
     handleClick = (event) => {
         const { visible } = this.state;
-        const wasOutside = !(event.target.contains === this.root);
+        let wasOutside = false;
+        if (visible) wasOutside = !this.root.contains(event.target);
 
         if (wasOutside && visible) this.setState({ visible: false });
     };
@@ -90,11 +91,11 @@ class ContextMenu extends React.Component {
 
 export function SubMenu(props) {
     const ref = useRef(null);
+    const submenuRef = useRef(null);
     const [showMenu, setShowMenu] = useState(false);
     const [smPos, setSmPos] = useState({ x: 100, y: 100 });
     const repositionMenu = () => {
         const rect = ref.current.getBoundingClientRect();
-        console.log(rect);
         setSmPos({ x: rect.x + rect.width, y: rect.y });
     };
 
@@ -114,6 +115,7 @@ export function SubMenu(props) {
                 <span>></span>
                 {showMenu ? (
                     <div
+                        ref={submenuRef}
                         className="contextMenu--sub"
                         style={{
                             position: "fixed",
@@ -121,9 +123,7 @@ export function SubMenu(props) {
                             top: smPos.y,
                         }}
                     >
-                        {
-                            props.children /* These float on the outside of the div*/
-                        }
+                        {props.children}
                     </div>
                 ) : null}
             </div>
@@ -136,7 +136,15 @@ export function MenuSeparator() {
 }
 
 export function MenuItem(props) {
-    return <div className="contextMenu--option">{props.children}</div>;
+    const selectable = props.selectable || false;
+    return (
+        <div
+            className="contextMenu--option"
+            onClick={() => console.log("Click")}
+        >
+            {props.children}
+        </div>
+    );
 }
 
 export default ContextMenu;

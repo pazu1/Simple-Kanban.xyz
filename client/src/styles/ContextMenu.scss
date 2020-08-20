@@ -3,6 +3,7 @@
 .contextMenu {
     position: fixed;
     background: white;
+    color: black;
     box-shadow: 0px 2px 10px #999999;
     margin-top: 6px;
     margin-left: 2px;
@@ -11,7 +12,6 @@
         @extend .contextMenu;
         margin-top: 0px;
         margin-left: 0px;
-        color: #000;
     }
     &--option {
         padding: 6px 10px 5px 10px;
