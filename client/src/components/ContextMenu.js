@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "../styles/ContextMenu.scss";
 
 class ContextMenu extends React.Component {
@@ -23,7 +23,7 @@ class ContextMenu extends React.Component {
     }
 
     handlePosChange = () => {
-        const { pos } = this.props;
+        const { pos } = this.props; // TODO: change this to represent ref
 
         this.setState({ visible: true }, () => {
             if (!pos) return;
@@ -93,11 +93,29 @@ export function SubMenu(props) {
     const ref = useRef(null);
     const submenuRef = useRef(null);
     const [showMenu, setShowMenu] = useState(false);
-    const [smPos, setSmPos] = useState({ x: 100, y: 100 });
+    const [smPos, setSmPos] = useState({});
     const repositionMenu = () => {
         const rect = ref.current.getBoundingClientRect();
-        setSmPos({ x: rect.x + rect.width, y: rect.y });
+        const titleH = rect.height;
+        const screenW = window.innerWidth;
+        const screenH = window.innerHeight;
+        const menuX = rect.x;
+        const menuY = rect.y;
+        const menuW = submenuRef.current.offsetWidth;
+        const menuH = submenuRef.current.offsetHeight;
+
+        const right = menuX + menuW * 2 > screenW;
+        const top = menuY + menuH > screenH;
+        let x = rect.x + rect.width;
+        let y = rect.y;
+        if (right) x -= 2 * rect.width;
+        if (top) y -= menuH - titleH;
+
+        setSmPos({ x: x, y: y });
     };
+    useEffect(() => {
+        if (showMenu) repositionMenu();
+    }, [showMenu]);
 
     const { title } = props;
     return (
@@ -106,7 +124,6 @@ export function SubMenu(props) {
                 ref={ref}
                 className="contextMenu--option"
                 onMouseEnter={() => {
-                    repositionMenu();
                     setShowMenu(true);
                 }}
                 onMouseLeave={() => setShowMenu(false)}
@@ -136,13 +153,13 @@ export function MenuSeparator() {
 }
 
 export function MenuItem(props) {
-    const selectable = props.selectable || false;
+    const selected = props.selected === true || false;
     return (
         <div
             className="contextMenu--option"
             onClick={() => console.log("Click")}
         >
-            {props.children}
+            {selected ? <li>{props.children}</li> : props.children}
         </div>
     );
 }

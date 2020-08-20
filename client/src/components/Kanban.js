@@ -20,15 +20,19 @@ function Kanban(props) {
     let columnComponents = Object.keys(columns).map((key) => {
         return <KColumn columnName={key} cmToggle={toggleContextMenu} />;
     });
+    const { card } = cmContent;
+    let cardPriority = false;
+    if (card) cardPriority = card.priority;
+
     return (
         <div className="kanban">
             <ContextMenu pos={cmContent.pos} visible={cmContent.show}>
                 <MenuItem>Edit</MenuItem>
                 <MenuItem>Delete</MenuItem>
                 <SubMenu title="Priority">
-                    <MenuItem selectable>Low</MenuItem>
-                    <MenuItem selectable>Medium</MenuItem>
-                    <MenuItem selectable>High</MenuItem>
+                    <MenuItem selected={cardPriority === 1}>Low</MenuItem>
+                    <MenuItem selected={cardPriority === 2}>Medium</MenuItem>
+                    <MenuItem selected={cardPriority === 3}>High</MenuItem>
                 </SubMenu>
                 <MenuSeparator />
                 <MenuItem>Cancel</MenuItem>
