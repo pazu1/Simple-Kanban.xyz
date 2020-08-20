@@ -99,7 +99,7 @@ function KCard({ card, setDisableDrop, setDropIndex, cmToggle }) {
                 <button
                     onClick={(e) => {
                         let pos = ref.current.getBoundingClientRect();
-                        cmToggle(pos, true);
+                        cmToggle(pos, card);
                     }}
                     className="cardMenuBtn"
                 >

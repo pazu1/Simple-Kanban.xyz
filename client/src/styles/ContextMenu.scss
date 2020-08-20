@@ -1,21 +1,36 @@
+@import "./_theme.scss";
+
 .contextMenu {
     position: fixed;
     background: white;
     box-shadow: 0px 2px 10px #999999;
+    margin-top: 6px;
+    margin-left: 2px;
     
+    &--sub {
+        @extend .contextMenu;
+        margin-top: 0px;
+        margin-left: 0px;
+        color: #000;
+    }
     &--option {
-        padding: 6px 50px 5px 10px;
-        min-width: 100px;
-        cursor: default;
+        padding: 6px 10px 5px 10px;
+        cursor: pointer;
+        min-width: 80px;
         font-size: 12px;
+        white-space: nowrap;
+        span {
+            display: block;
+            float: right;
+        }
         &:hover {
-            background: linear-gradient(to top, #555, #333);
+            background: $accent;
             color: white;
         }
         
         &:active {
             color: #e9e9e9;
-            background: linear-gradient(to top, #555, #444);
+            background: $accent
         }
         
         &__disabled {
@@ -25,7 +40,6 @@
     }
     
     &--separator {
-        width: 100%;
         height: 1px;
         background: #CCCCCC;
         margin: 0 0 0 0;
