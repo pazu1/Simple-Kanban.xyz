@@ -8,6 +8,8 @@ const JWT = "jwt";
 const CARDS = "cards";
 const PROJECTS = "projects";
 
+// TODO: error handling
+
 // This will correspond with the ones stored in the database
 class Card {
     constructor(
@@ -37,6 +39,7 @@ class KanbanContextProvider extends React.Component {
         };
         this.changeCardPosition = this.changeCardPosition.bind(this);
         this.addCard = this.addCard.bind(this);
+        this.removeCard = this.removeCard.bind(this);
         this.finishCardEdit = this.finishCardEdit.bind(this);
         this.cancelCardEdit = this.cancelCardEdit.bind(this);
         this.updateCardPriority = this.updateCardPriority.bind(this);
@@ -95,8 +98,16 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
-    removeCard(card) {
-        console.log("del");
+    async removeCard(card) {
+        await this.deleteCard(card.id);
+        let copyColumns = this.state.columns;
+        let cardColumn = copyColumns[card.column];
+        cardColumn.splice(cardColumn.indexOf(card), 1);
+        cardColumn.forEach((c, i) => {
+            c.index = i;
+        });
+        await this.updateColumns(cardColumn, []); // Update the indices
+        this.setState({ columns: copyColumns });
     }
 
     // Clear state.unfinishedCard and call API to add it to the database.
@@ -307,6 +318,7 @@ class KanbanContextProvider extends React.Component {
         const { columns, unfinishedCard } = this.state;
         const {
             addCard,
+            removeCard,
             updateCardPriority,
             finishCardEdit,
             cancelCardEdit,
@@ -320,6 +332,7 @@ class KanbanContextProvider extends React.Component {
                     columns,
                     unfinishedCard,
                     addCard,
+                    removeCard,
                     updateCardPriority,
                     finishCardEdit,
                     cancelCardEdit,

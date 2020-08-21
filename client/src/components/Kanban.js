@@ -6,7 +6,9 @@ import KanbanContext from "./KanbanContext";
 import ContextMenu, { MenuItem, SubMenu, MenuSeparator } from "./ContextMenu";
 
 function Kanban(props) {
-    const { columns, updateCardPriority } = useContext(KanbanContext);
+    const { columns, updateCardPriority, removeCard } = useContext(
+        KanbanContext
+    );
     let cmRef = useRef(null);
     const [cmContent, setCmContent] = useState({
         card: null,
@@ -23,7 +25,9 @@ function Kanban(props) {
     const { card } = cmContent;
     let cardPriority = false;
     if (card) cardPriority = card.priority;
-
+    const hideContextMenu = () => {
+        cmRef.current.setState({ visible: false });
+    };
     const contextMenuPriority = (
         <>
             <MenuItem
@@ -49,14 +53,17 @@ function Kanban(props) {
     const contextMenuMain = (
         <>
             <MenuItem>Edit label</MenuItem>
-            <MenuItem>Delete</MenuItem>
+            <MenuItem
+                onClick={() => {
+                    removeCard(card);
+                    hideContextMenu();
+                }}
+            >
+                Delete
+            </MenuItem>
             <SubMenu title="Priority">{contextMenuPriority}</SubMenu>
             <MenuSeparator />
-            <MenuItem
-                onClick={() => cmRef.current.setState({ visible: false })}
-            >
-                Cancel
-            </MenuItem>
+            <MenuItem onClick={hideContextMenu}>Cancel</MenuItem>
         </>
     );
 
