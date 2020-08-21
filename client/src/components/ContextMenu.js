@@ -150,12 +150,10 @@ export function MenuSeparator() {
 }
 
 export function MenuItem(props) {
+    const { onClick } = props;
     const selected = props.selected === true || false;
     return (
-        <div
-            className="contextMenu--option"
-            onClick={() => console.log("Click")}
-        >
+        <div className="contextMenu--option" onClick={onClick}>
             {selected ? <li>{props.children}</li> : props.children}
         </div>
     );

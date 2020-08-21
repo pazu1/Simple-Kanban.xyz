@@ -169,14 +169,18 @@ router.put("/cards/:id", async (req, res) => {
     try {
         const { user_id } = req.user;
         const { id } = req.params; // Where to update
-        const { description } = req.body; // What is to be updated
+        const { description, priority } = req.body; // What is to be updated
+        console.log(user_id, description, priority, id);
         pool.query(
-            "UPDATE cr.card " +
-                "SET cr.description = $1 " +
-                "FROM card cr INNER JOIN project pr " +
-                "ON pr.project_id = cr.project_id " +
-                "WHERE cr.card_id = $2 and pr.user_id = $3",
-            [description, id, user_id]
+            `
+            UPDATE card AS c1
+            SET description = $1, k_priority = $2
+            FROM project pr 
+            WHERE c1.card_id = $3 
+            AND c1.project_id = pr.project_id 
+            AND pr.user_id = $4
+            `,
+            [description, priority, id, user_id]
         )
             .then(() => {
                 response.success = true;

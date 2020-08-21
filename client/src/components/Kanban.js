@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useRef } from "react";
 
 import "../styles/Kanban.scss";
 import KColumn from "./KColumn";
@@ -6,36 +6,68 @@ import KanbanContext from "./KanbanContext";
 import ContextMenu, { MenuItem, SubMenu, MenuSeparator } from "./ContextMenu";
 
 function Kanban(props) {
-    const { columns } = useContext(KanbanContext);
+    const { columns, updateCardPriority } = useContext(KanbanContext);
+    let cmRef = useRef(null);
     const [cmContent, setCmContent] = useState({
         card: null,
         pos: null,
+        onlyPriority: false,
     });
-    const toggleContextMenu = (pos, card) => {
+    const toggleContextMenu = (pos, card, onlyPriority = false) => {
         setCmContent({
             card: card,
             pos: pos,
+            onlyPriority: onlyPriority,
         });
     };
-    let columnComponents = Object.keys(columns).map((key) => {
-        return <KColumn columnName={key} cmToggle={toggleContextMenu} />;
-    });
     const { card } = cmContent;
     let cardPriority = false;
     if (card) cardPriority = card.priority;
 
+    const contextMenuPriority = (
+        <>
+            <MenuItem
+                onClick={() => updateCardPriority(1, cmContent.card)}
+                selected={cardPriority === 1}
+            >
+                Low
+            </MenuItem>
+            <MenuItem
+                onClick={() => updateCardPriority(2, cmContent.card)}
+                selected={cardPriority === 2}
+            >
+                Medium
+            </MenuItem>
+            <MenuItem
+                onClick={() => updateCardPriority(3, cmContent.card)}
+                selected={cardPriority === 3}
+            >
+                High
+            </MenuItem>
+        </>
+    );
+    const contextMenuMain = (
+        <>
+            <MenuItem>Edit label</MenuItem>
+            <MenuItem>Delete</MenuItem>
+            <SubMenu title="Priority">{contextMenuPriority}</SubMenu>
+            <MenuSeparator />
+            <MenuItem
+                onClick={() => cmRef.current.setState({ visible: false })}
+            >
+                Cancel
+            </MenuItem>
+        </>
+    );
+
+    let columnComponents = Object.keys(columns).map((key) => {
+        return <KColumn columnName={key} cmToggle={toggleContextMenu} />;
+    });
+
     return (
         <div className="kanban">
-            <ContextMenu pos={cmContent.pos} visible={cmContent.show}>
-                <MenuItem>Edit</MenuItem>
-                <MenuItem>Delete</MenuItem>
-                <SubMenu title="Priority">
-                    <MenuItem selected={cardPriority === 1}>Low</MenuItem>
-                    <MenuItem selected={cardPriority === 2}>Medium</MenuItem>
-                    <MenuItem selected={cardPriority === 3}>High</MenuItem>
-                </SubMenu>
-                <MenuSeparator />
-                <MenuItem>Cancel</MenuItem>
+            <ContextMenu ref={cmRef} pos={cmContent.pos}>
+                {cmContent.onlyPriority ? contextMenuPriority : contextMenuMain}
             </ContextMenu>
 
             <span className="projectTitle">Project Title</span>

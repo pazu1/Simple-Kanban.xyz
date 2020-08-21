@@ -11,6 +11,7 @@ function KCard({ card, setDisableDrop, setDropIndex, cmToggle }) {
     const { finishCardEdit, cancelCardEdit } = useContext(KanbanContext);
     const { priority, description, id, index, column } = card;
     const ref = useRef(null);
+    const priLabelRef = useRef(null);
     let formRef = useRef(null);
     const [editFormDesc, setEditFormDesc] = useState();
     let dropAfterCard = false;
@@ -93,7 +94,14 @@ function KCard({ card, setDisableDrop, setDropIndex, cmToggle }) {
         drag(drop(ref));
         displayContents = (
             <>
-                <div className={`priorityLabel--${priorityText}`}>
+                <div
+                    ref={priLabelRef}
+                    className={`priorityLabel--${priorityText}`}
+                    onClick={() => {
+                        let pos = priLabelRef.current.getBoundingClientRect();
+                        cmToggle(pos, card, true);
+                    }}
+                >
                     {priorityText}
                 </div>
                 <button

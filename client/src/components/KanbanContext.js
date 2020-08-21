@@ -39,6 +39,7 @@ class KanbanContextProvider extends React.Component {
         this.addCard = this.addCard.bind(this);
         this.finishCardEdit = this.finishCardEdit.bind(this);
         this.cancelCardEdit = this.cancelCardEdit.bind(this);
+        this.updateCardPriority = this.updateCardPriority.bind(this);
     }
 
     async componentDidMount() {
@@ -88,14 +89,7 @@ class KanbanContextProvider extends React.Component {
         this.setState((prevState) => {
             let copyColumns = prevState.columns;
             let copyColumn = copyColumns[column];
-            const card = new Card(
-                -1,
-                "!!!CREATED_CARD!!!",
-                index,
-                column,
-                1,
-                false
-            );
+            const card = new Card(-1, "", index, column, 1, false);
             copyColumns[column].push(card);
             return { columns: copyColumns, unfinishedCard: card };
         });
@@ -201,6 +195,16 @@ class KanbanContextProvider extends React.Component {
         );
     }
 
+    updateCardPriority(priority, card) {
+        if (card.priority === priority) return;
+        let copyColumns = this.state.columns;
+        card.priority = priority;
+        this.updateCard(card.id, card.description, priority);
+        this.setState({
+            columns: copyColumns,
+        });
+    }
+
     //
     // API calls
     //
@@ -248,9 +252,11 @@ class KanbanContextProvider extends React.Component {
         };
 
         try {
-            let resJson = await fetch(API_URL + CARDS, requestConf).json();
+            let res = await fetch(API_URL + CARDS, requestConf);
+            let resJson = res.json();
             return resJson;
         } catch (err) {
+            console.log(err);
             return false;
         }
     }
@@ -280,7 +286,7 @@ class KanbanContextProvider extends React.Component {
             .catch((err) => err);
     }
 
-    async updateCard(id, description, priority) {
+    async updateCard(id, description = null, priority = null) {
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -289,6 +295,7 @@ class KanbanContextProvider extends React.Component {
                 priority: priority,
             }),
         };
+        console.log(id);
 
         fetch(`${API_URL + CARDS}/${id}`, requestConf)
             .then((res) => res.json())
@@ -300,6 +307,7 @@ class KanbanContextProvider extends React.Component {
         const { columns, unfinishedCard } = this.state;
         const {
             addCard,
+            updateCardPriority,
             finishCardEdit,
             cancelCardEdit,
             changeCardPosition,
@@ -312,6 +320,7 @@ class KanbanContextProvider extends React.Component {
                     columns,
                     unfinishedCard,
                     addCard,
+                    updateCardPriority,
                     finishCardEdit,
                     cancelCardEdit,
                     changeCardPosition,
