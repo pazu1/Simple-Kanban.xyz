@@ -118,6 +118,10 @@ class KanbanContextProvider extends React.Component {
         this.setState({ columns: copyColumns });
     }
 
+    makeCardEditable(card) {
+        this.setState({ unfinishedCard: card });
+    }
+
     // Clear state.unfinishedCard and call API to add it to the database.
     // Called after a new card is created or an existing card was edited.
     async finishCardEdit(description) {

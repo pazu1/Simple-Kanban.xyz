@@ -7,7 +7,7 @@ const pgp = require("pg-promise")();
 const pool = require("../userdata/db").pool;
 const pgpPool = require("../userdata/db").pgpPool;
 
-// TODO: error handling
+// TODO: test API for errors, make sure all cases are covered
 //       psql triggers
 
 //
@@ -47,6 +47,7 @@ router.get("/jwt", async (req, res) => {
 });
 
 router.use(
+    // TODO: Mount error handler as middleware (?)
     jwt({
         secret: jwtSecret,
         getToken: (req) => req.cookies.token,
@@ -63,8 +64,8 @@ router.get("/", (req, res) => {
     console.log(req.user);
 });
 
-router.get("/projects", async (req, res) => {
-    try {
+router.get("/projects", (req, res) => {
+    useErrorHandler(async () => {
         const { user_id } = req.user;
         const allProjects = await pool.query(
             `
@@ -79,15 +80,12 @@ router.get("/projects", async (req, res) => {
         return res.json(
             new Response(true, "Projects retrieved.", allProjects.rows)
         );
-    } catch (err) {
-        console.error(err.message);
-        return res.json(new Response(false, err.message));
-    }
+    })();
 });
 
 // get all cards for a project
 router.get("/cards", async (req, res) => {
-    try {
+    useErrorHandler(async () => {
         const { user_id } = req.user;
         const { project_id } = req.query;
         const allCards = await pool.query(
@@ -101,36 +99,30 @@ router.get("/cards", async (req, res) => {
         );
         if (!allCards.rows.length) throw new Error("No cards found.");
         return res.json(new Response(true, "Cards retrieved.", allCards.rows));
-    } catch (err) {
-        console.error(err.message);
-        return res.json(new Response(false, err.message));
-    }
+    })();
 });
 
 // get a card
 router.get("/cards/:id", async (req, res) => {
-    try {
+    useErrorHandler(async () => {
         const { user_id } = req.user;
         const { id } = req.params;
         const card = await pool.query(
             `
-            SELECT cr.description, cr.card_id, cr.k_column
-                FROM project pr 
-                INNER JOIN card cr ON cr.project_id = pr.project_id 
-                WHERE pr.user_id = $1 AND cr.card_id = $2`,
+                SELECT cr.description, cr.card_id, cr.k_column
+                    FROM project pr 
+                    INNER JOIN card cr ON cr.project_id = pr.project_id 
+                    WHERE pr.user_id = $1 AND cr.card_id = $2`,
             [user_id, id]
         );
         if (!card.rows.length) throw new Error("Card not found.");
         return res.json(new Response(true, "Retrieved card", card.rows));
-    } catch (err) {
-        console.error(err.message);
-        return res.json(new Response(false, err.message));
-    }
+    })();
 });
 
 // update two columns of cards
 router.put("/cards/", async (req, res) => {
-    try {
+    useErrorHandler(async () => {
         const { user_id } = req.user;
         const { columnA, columnB } = req.body;
         const updateData = columnA.concat(columnB).map((c) => {
@@ -149,22 +141,20 @@ router.put("/cards/", async (req, res) => {
                 WHERE user_id = $1
             )
             `;
-        pool.query(update, [user_id])
+        pool.query(update, [user_id]) // XXX possible bug TODO: check if this can catch the error in time
+            // or whether the new thread escapes the function. Might need an await in the front.
             .then(() => {
                 return res.json(new Response(true, "Columns updated."));
             })
             .catch((err) => {
                 throw new Error("Could not update columns.");
             });
-    } catch (err) {
-        console.error(err.message);
-        return res.json(new Response(false, err.message));
-    }
+    })();
 });
 
 //  update a card
 router.put("/cards/:id", async (req, res) => {
-    try {
+    useErrorHandler(async () => {
         const { user_id } = req.user;
         const { id } = req.params; // Where to update
         const { description, priority } = req.body; // What is to be updated
@@ -186,15 +176,12 @@ router.put("/cards/:id", async (req, res) => {
             .catch((err) => {
                 throw new Error("Could not update card.");
             });
-    } catch (err) {
-        console.error(err.message);
-        return res.json(new Response(false, err.message));
-    }
+    })();
 });
 
 // add a card
 router.post("/cards", async (req, res) => {
-    try {
+    useErrorHandler(async () => {
         const { user_id } = req.user;
         const project_id = parseInt(req.body.project_id);
         const { description, column, priority, index } = req.body;
@@ -220,15 +207,12 @@ router.post("/cards", async (req, res) => {
             [description, column, project_id, priority, index]
         );
         return res.json(new Response(true, "Card added.", newCard.rows[0]));
-    } catch (err) {
-        console.error(err.message);
-        return res.json(new Response(false, err.message));
-    }
+    })();
 });
 
 // delete a card
 router.delete("/cards/:id", async (req, res) => {
-    try {
+    useErrorHandler(async () => {
         const { user_id } = req.user;
         const { id } = req.params;
         const deleteCard = await pool.query(
@@ -246,9 +230,18 @@ router.delete("/cards/:id", async (req, res) => {
         }
 
         return res.json(new Response(true, "Card was deleted."));
-    } catch (err) {
-        return res.json(new Response(false, err.message));
-    }
+    })();
 });
+
+var useErrorHandler = function (f) {
+    return function () {
+        try {
+            return f.apply(this, arguments);
+        } catch (e) {
+            console.error(err.message);
+            return res.json(new Response(false, err.message));
+        }
+    };
+};
 
 module.exports = router;
