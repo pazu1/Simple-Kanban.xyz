@@ -23,27 +23,14 @@ class APIConnection {
             console.log(message);
         }
     }
+
     async getProjects() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let res = await fetch(API_URL + PROJECTS);
-                resolve(res.json());
-            } catch (err) {
-                reject(err);
-            }
-        });
+        return fetch(API_URL + PROJECTS).then((res) => res.json());
     }
 
     async getCards(project_id) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let current_pr_id = `/?project_id=${project_id}`;
-                let res = await fetch(API_URL + CARDS + current_pr_id);
-                resolve(res.json());
-            } catch (err) {
-                reject(err);
-            }
-        });
+        let current_pr_id = `/?project_id=${project_id}`;
+        return fetch(API_URL + CARDS + current_pr_id).then((res) => res.json());
     }
 
     async postCard(card, project_id) {
@@ -60,16 +47,7 @@ class APIConnection {
             }),
         };
 
-        return new Promise(async (resolve, reject) => {
-            try {
-                let res = await fetch(API_URL + CARDS, requestConf);
-                let resJson = res.json();
-                resolve(resJson);
-            } catch (err) {
-                console.log(err);
-                reject(err);
-            }
-        });
+        return fetch(API_URL + CARDS, requestConf).then((res) => res.json());
     }
 
     async deleteCard(id) {

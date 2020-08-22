@@ -50,11 +50,14 @@ class KanbanContextProvider extends React.Component {
         this.API = new APIConnection();
         await this.API.getToken();
 
-        let projects = await this.API.getProjects();
+        let projects = await this.API.getProjects().then((res) => res.content);
         if (!projects) return;
         console.log(projects);
         let project = projects[0]; // TODO: this should probably be the project that the user last accessed, now it's just the first one in the list
-        let resCards = await this.API.getCards(project.project_id);
+        let resCards = await this.API.getCards(project.project_id).then(
+            (res) => res.content
+        );
+        console.log(resCards);
         let cards = resCards
             .map((c) => {
                 return new Card(

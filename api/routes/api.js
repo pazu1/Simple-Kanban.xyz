@@ -74,13 +74,14 @@ router.get("/projects", async (req, res) => {
             `,
             [user_id]
         );
-        if (!allProjects.rows.length)
-            return res.status(404).send("No projects found"); // TODO: make a pattern of throwing error
-        // here and using only the catch below to send error response to user
+        if (!allProjects.rows.length) throw new Error("No projects found.");
 
-        res.send(allProjects.rows);
+        return res.json(
+            new Response(true, "Projects retrieved.", allProjects.rows)
+        );
     } catch (err) {
         console.error(err.message);
+        return res.json(new Response(false, err.message));
     }
 });
 
@@ -98,12 +99,11 @@ router.get("/cards", async (req, res) => {
             `,
             [user_id, project_id]
         );
-        if (!allCards.rows.length)
-            return res.status(404).send("No cards found");
-
-        res.send(allCards.rows);
+        if (!allCards.rows.length) throw new Error("No cards found.");
+        return res.json(new Response(true, "Cards retrieved.", allCards.rows));
     } catch (err) {
         console.error(err.message);
+        return res.json(new Response(false, err.message));
     }
 });
 
@@ -120,20 +120,16 @@ router.get("/cards/:id", async (req, res) => {
                 WHERE pr.user_id = $1 AND cr.card_id = $2`,
             [user_id, id]
         );
-        if (!card.rows.length)
-            return res.status(404).send("The card was not found");
-        res.send(card.rows);
+        if (!card.rows.length) throw new Error("Card not found.");
+        return res.json(new Response(true, "Retrieved card", card.rows));
     } catch (err) {
         console.error(err.message);
+        return res.json(new Response(false, err.message));
     }
 });
 
 // update two columns of cards
 router.put("/cards/", async (req, res) => {
-    let response = {
-        type: "column update",
-        success: false,
-    };
     try {
         const { user_id } = req.user;
         const { columnA, columnB } = req.body;
@@ -155,27 +151,19 @@ router.put("/cards/", async (req, res) => {
             `;
         pool.query(update, [user_id])
             .then(() => {
-                response.success = true;
-                res.json(response);
+                return res.json(new Response(true, "Columns updated."));
             })
             .catch((err) => {
-                console.log(err);
-                response.success = false;
-                res.json(response);
+                throw new Error("Could not update columns.");
             });
     } catch (err) {
-        console.error(err);
-        response.success = false;
-        res.json(response);
+        console.error(err.message);
+        return res.json(new Response(false, err.message));
     }
 });
 
 //  update a card
 router.put("/cards/:id", async (req, res) => {
-    let response = {
-        type: "card update",
-        success: false,
-    };
     try {
         const { user_id } = req.user;
         const { id } = req.params; // Where to update
@@ -193,16 +181,14 @@ router.put("/cards/:id", async (req, res) => {
             [description, priority, id, user_id]
         )
             .then(() => {
-                response.success = true;
-                res.json(response);
+                return res.json(new Response(true, "Card added."));
             })
             .catch((err) => {
                 throw new Error("Could not update card.");
             });
     } catch (err) {
-        console.log(err);
-        response.success = false;
-        res.json(response);
+        console.error(err.message);
+        return res.json(new Response(false, err.message));
     }
 });
 
