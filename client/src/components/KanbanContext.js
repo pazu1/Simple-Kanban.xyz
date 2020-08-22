@@ -1,8 +1,8 @@
 import React, { createContext } from "react";
 
 import { arraymove } from "../utils/const";
+import APIConnection from "../APIConnection";
 const KanbanContext = createContext();
-
 const API_URL = "api/";
 const JWT = "jwt";
 const CARDS = "cards";
@@ -26,6 +26,7 @@ class Card {
         this.column = column;
         this.priority = priority;
         this.finished = finished;
+        this.API = null;
     }
 }
 
@@ -46,12 +47,14 @@ class KanbanContextProvider extends React.Component {
     }
 
     async componentDidMount() {
-        await this.getJwt();
-        let projects = await this.getProjects();
+        this.API = new APIConnection();
+        await this.API.getToken();
+
+        let projects = await this.API.getProjects();
         if (!projects) return;
         console.log(projects);
         let project = projects[0]; // TODO: this should probably be the project that the user last accessed, now it's just the first one in the list
-        let resCards = await this.getCards(project.project_id);
+        let resCards = await this.API.getCards(project.project_id);
         let cards = resCards
             .map((c) => {
                 return new Card(
@@ -99,14 +102,16 @@ class KanbanContextProvider extends React.Component {
     }
 
     async removeCard(card) {
-        await this.deleteCard(card.id);
+        await this.API.deleteCard(card.id);
         let copyColumns = this.state.columns;
         let cardColumn = copyColumns[card.column];
         cardColumn.splice(cardColumn.indexOf(card), 1);
-        cardColumn.forEach((c, i) => {
-            c.index = i;
-        });
-        await this.updateColumns(cardColumn, []); // Update the indices
+        if (cardColumn.length) {
+            cardColumn.forEach((c, i) => {
+                c.index = i;
+            });
+            await this.API.updateColumns(cardColumn, []); // Update the indices
+        }
         this.setState({ columns: copyColumns });
     }
 
@@ -123,14 +128,17 @@ class KanbanContextProvider extends React.Component {
         }
 
         // API call to add card and get id
-        let response = await this.postCard(editedCard);
+        let response = await this.API.postCard(
+            editedCard,
+            this.state.project_id
+        );
         console.log(response);
         if (!response) {
             console.log("Error posting card");
             this.cancelCardEdit();
             return;
         }
-        editedCard.id = response.card_id;
+        editedCard.id = response.content.card_id;
         this.setState({
             unfinishedCard: null,
             columns: copyColumns,
@@ -159,11 +167,14 @@ class KanbanContextProvider extends React.Component {
     }
 
     // Change card index and/or column
-    changeCardPosition(card, toColumn, toIndex = 0) {
+    async changeCardPosition(card, toColumn, toIndex = 0) {
         const ca = toColumn;
         const cb = card.column;
-        const callAPI = () => {
-            this.updateColumns(this.state.columns[ca], this.state.columns[cb]);
+        const callAPI = async () => {
+            this.API.updateColumns(
+                this.state.columns[ca],
+                this.state.columns[cb]
+            );
         };
         if (card.column === toColumn) {
             this.setState(
@@ -210,108 +221,10 @@ class KanbanContextProvider extends React.Component {
         if (card.priority === priority) return;
         let copyColumns = this.state.columns;
         card.priority = priority;
-        this.updateCard(card.id, card.description, priority);
+        this.API.updateCard(card.id, card.description, priority);
         this.setState({
             columns: copyColumns,
         });
-    }
-
-    //
-    // API calls
-    //
-    async getJwt() {
-        const res = await fetch(API_URL + JWT);
-        try {
-            const jwt = await res.clone().json();
-        } catch (err) {
-            const message = await res.text();
-            console.log(message);
-        }
-    }
-
-    async getProjects() {
-        try {
-            let res = await fetch(API_URL + PROJECTS);
-            return res.json();
-        } catch (err) {
-            return false;
-        }
-    }
-
-    async getCards(project_id) {
-        try {
-            let current_pr_id = `/?project_id=${project_id}`;
-            let res = await fetch(API_URL + CARDS + current_pr_id);
-            return res.json();
-        } catch (err) {
-            return false;
-        }
-    }
-
-    async postCard(card) {
-        let { description, column, index, priority } = card;
-        const requestConf = {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                description: description,
-                index: index,
-                column: column,
-                priority: priority,
-                project_id: this.state.project_id,
-            }),
-        };
-
-        try {
-            let res = await fetch(API_URL + CARDS, requestConf);
-            let resJson = res.json();
-            return resJson;
-        } catch (err) {
-            console.log(err);
-            return false;
-        }
-    }
-
-    async deleteCard(id) {
-        const requestConf = {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-        };
-
-        fetch(`${API_URL + CARDS}/${id}`, requestConf)
-            .then((res) => res.json())
-            .then((resJson) => console.log(resJson))
-            .catch((err) => err);
-    }
-
-    async updateColumns(columnA, columnB) {
-        const requestConf = {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ columnA: columnA, columnB: columnB }),
-        };
-
-        fetch(`${API_URL + CARDS}`, requestConf)
-            .then((res) => res.json())
-            .then((resJson) => console.log(resJson))
-            .catch((err) => err);
-    }
-
-    async updateCard(id, description = null, priority = null) {
-        const requestConf = {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                description: description,
-                priority: priority,
-            }),
-        };
-        console.log(id);
-
-        fetch(`${API_URL + CARDS}/${id}`, requestConf)
-            .then((res) => res.json())
-            .then((resJson) => console.log(resJson))
-            .catch((err) => err);
     }
 
     render() {
@@ -323,7 +236,6 @@ class KanbanContextProvider extends React.Component {
             finishCardEdit,
             cancelCardEdit,
             changeCardPosition,
-            getCards,
         } = this;
 
         return (
@@ -337,7 +249,6 @@ class KanbanContextProvider extends React.Component {
                     finishCardEdit,
                     cancelCardEdit,
                     changeCardPosition,
-                    getCards,
                 }}
             >
                 {this.props.children}

@@ -68,7 +68,9 @@ function Kanban(props) {
     );
 
     let columnComponents = Object.keys(columns).map((key) => {
-        return <KColumn columnName={key} cmToggle={toggleContextMenu} />;
+        return (
+            <KColumn key={key} columnName={key} cmToggle={toggleContextMenu} />
+        );
     });
 
     return (

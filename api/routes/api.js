@@ -7,7 +7,8 @@ const pgp = require("pg-promise")();
 const pool = require("../userdata/db").pool;
 const pgpPool = require("../userdata/db").pgpPool;
 
-// TODO: add validation for incoming requests
+// TODO: error handling
+//       psql triggers
 
 //
 // Authorization
@@ -15,6 +16,14 @@ const pgpPool = require("../userdata/db").pgpPool;
 
 // This is to be a strong password that is only stored in the server
 const jwtSecret = "secret";
+
+class Response {
+    constructor(success = false, message, content = null) {
+        this.success = success;
+        this.message = message;
+        this.content = content;
+    }
+}
 
 router.get("/jwt", async (req, res) => {
     // Handle on user already has access token
@@ -66,7 +75,8 @@ router.get("/projects", async (req, res) => {
             [user_id]
         );
         if (!allProjects.rows.length)
-            return res.status(404).send("No projects found");
+            return res.status(404).send("No projects found"); // TODO: make a pattern of throwing error
+        // here and using only the catch below to send error response to user
 
         res.send(allProjects.rows);
     } catch (err) {
@@ -187,9 +197,7 @@ router.put("/cards/:id", async (req, res) => {
                 res.json(response);
             })
             .catch((err) => {
-                console.log(err);
-                response.success = false;
-                res.json(response);
+                throw new Error("Could not update card.");
             });
     } catch (err) {
         console.log(err);
@@ -215,7 +223,7 @@ router.post("/cards", async (req, res) => {
             [user_id, project_id]
         );
         if (!canAddCard.rows.length) {
-            return res.status(404).send("Project not found.");
+            throw new Error("Could not add card.");
         }
         const newCard = await pool.query(
             `
@@ -225,9 +233,10 @@ router.post("/cards", async (req, res) => {
         `,
             [description, column, project_id, priority, index]
         );
-        return res.send(newCard.rows[0]);
+        return res.json(new Response(true, "Card added.", newCard.rows[0]));
     } catch (err) {
         console.error(err.message);
+        return res.json(new Response(false, err.message));
     }
 });
 
@@ -246,12 +255,13 @@ router.delete("/cards/:id", async (req, res) => {
             `,
             [id, user_id]
         );
-        if (!deleteCard.rows.length)
-            return res.status(404).send("The card was not found");
+        if (!deleteCard.rows.length) {
+            throw new Error("Could not delete card.");
+        }
 
-        res.send("Card was deleted.");
+        return res.json(new Response(true, "Card was deleted."));
     } catch (err) {
-        console.error(err.message);
+        return res.json(new Response(false, err.message));
     }
 });
 
