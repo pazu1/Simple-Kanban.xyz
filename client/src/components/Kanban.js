@@ -6,9 +6,12 @@ import KanbanContext from "./KanbanContext";
 import ContextMenu, { MenuItem, SubMenu, MenuSeparator } from "./ContextMenu";
 
 function Kanban(props) {
-    const { columns, updateCardPriority, removeCard } = useContext(
-        KanbanContext
-    );
+    const {
+        columns,
+        makeCardEditable,
+        updateCardPriority,
+        removeCard,
+    } = useContext(KanbanContext);
     let cmRef = useRef(null);
     const [cmContent, setCmContent] = useState({
         card: null,
@@ -52,7 +55,14 @@ function Kanban(props) {
     );
     const contextMenuMain = (
         <>
-            <MenuItem>Edit label</MenuItem>
+            <MenuItem
+                onClick={() => {
+                    makeCardEditable(card);
+                    hideContextMenu();
+                }}
+            >
+                Edit label
+            </MenuItem>
             <MenuItem
                 onClick={() => {
                     removeCard(card);

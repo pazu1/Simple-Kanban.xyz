@@ -41,6 +41,7 @@ class KanbanContextProvider extends React.Component {
         this.changeCardPosition = this.changeCardPosition.bind(this);
         this.addCard = this.addCard.bind(this);
         this.removeCard = this.removeCard.bind(this);
+        this.makeCardEditable = this.makeCardEditable.bind(this);
         this.finishCardEdit = this.finishCardEdit.bind(this);
         this.cancelCardEdit = this.cancelCardEdit.bind(this);
         this.updateCardPriority = this.updateCardPriority.bind(this);
@@ -50,15 +51,15 @@ class KanbanContextProvider extends React.Component {
         this.API = new APIConnection();
         await this.API.getToken();
 
-        let projects = await this.API.getProjects().then((res) => res.content);
+        let resProjects = await this.API.getProjects();
+        let projects = resProjects.content;
         if (!projects) return;
         console.log(projects);
         let project = projects[0]; // TODO: this should probably be the project that the user last accessed, now it's just the first one in the list
-        let resCards = await this.API.getCards(project.project_id).then(
-            (res) => res.content
-        );
-        console.log(resCards);
-        let cards = resCards
+        let resCards = await this.API.getCards(project.project_id);
+        let fetchedCards = resCards.content;
+        console.log(fetchedCards);
+        let cards = fetchedCards
             .map((c) => {
                 return new Card(
                     c.card_id,
@@ -99,13 +100,13 @@ class KanbanContextProvider extends React.Component {
             let copyColumns = prevState.columns;
             let copyColumn = copyColumns[column];
             const card = new Card(-1, "", index, column, 1, false);
-            copyColumns[column].push(card);
+            copyColumn.push(card);
             return { columns: copyColumns, unfinishedCard: card };
         });
     }
 
     async removeCard(card) {
-        await this.API.deleteCard(card.id);
+        let res = await this.API.deleteCard(card.id);
         let copyColumns = this.state.columns;
         let cardColumn = copyColumns[card.column];
         cardColumn.splice(cardColumn.indexOf(card), 1);
@@ -113,12 +114,13 @@ class KanbanContextProvider extends React.Component {
             cardColumn.forEach((c, i) => {
                 c.index = i;
             });
-            await this.API.updateColumns(cardColumn, []); // Update the indices
+            let res = await this.API.updateColumns(cardColumn, []); // Update the indices
         }
         this.setState({ columns: copyColumns });
     }
 
     makeCardEditable(card) {
+        card.finished = false;
         this.setState({ unfinishedCard: card });
     }
 
@@ -130,22 +132,27 @@ class KanbanContextProvider extends React.Component {
         editedCard.description = description;
         editedCard.finished = true;
         if (editedCard.id !== -1) {
-            // TODO: call API card update instead of post
+            let res = this.API.updateCard(
+                editedCard.id,
+                editedCard.description,
+                editedCard.priority
+            );
+            this.setState({
+                unfinishedCard: null,
+                columns: copyColumns,
+            });
             return;
         }
 
         // API call to add card and get id
-        let response = await this.API.postCard(
-            editedCard,
-            this.state.project_id
-        );
-        console.log(response);
-        if (!response) {
+        let res = await this.API.postCard(editedCard, this.state.project_id);
+        console.log(res);
+        if (!res) {
             console.log("Error posting card");
             this.cancelCardEdit();
             return;
         }
-        editedCard.id = response.content.card_id;
+        editedCard.id = res.content.card_id;
         this.setState({
             unfinishedCard: null,
             columns: copyColumns,
@@ -178,7 +185,7 @@ class KanbanContextProvider extends React.Component {
         const ca = toColumn;
         const cb = card.column;
         const callAPI = async () => {
-            this.API.updateColumns(
+            let res = await this.API.updateColumns(
                 this.state.columns[ca],
                 this.state.columns[cb]
             );
@@ -224,11 +231,15 @@ class KanbanContextProvider extends React.Component {
         );
     }
 
-    updateCardPriority(priority, card) {
+    async updateCardPriority(priority, card) {
         if (card.priority === priority) return;
         let copyColumns = this.state.columns;
         card.priority = priority;
-        this.API.updateCard(card.id, card.description, priority);
+        let res = await this.API.updateCard(
+            card.id,
+            card.description,
+            priority
+        );
         this.setState({
             columns: copyColumns,
         });
@@ -239,6 +250,7 @@ class KanbanContextProvider extends React.Component {
         const {
             addCard,
             removeCard,
+            makeCardEditable,
             updateCardPriority,
             finishCardEdit,
             cancelCardEdit,
@@ -252,6 +264,7 @@ class KanbanContextProvider extends React.Component {
                     unfinishedCard,
                     addCard,
                     removeCard,
+                    makeCardEditable,
                     updateCardPriority,
                     finishCardEdit,
                     cancelCardEdit,
