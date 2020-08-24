@@ -1,9 +1,22 @@
 import React, { useContext, useState, useRef } from "react";
+import MdMore from "react-ionicons/lib/MdMore";
 
 import "../styles/Kanban.scss";
 import KColumn from "./KColumn";
 import KanbanContext from "./KanbanContext";
-import ContextMenu, { MenuItem, SubMenu, MenuSeparator } from "./ContextMenu";
+import ContextMenu, {
+    MenuItem,
+    SubMenu,
+    MenuSeparator,
+    useHideContextmenu,
+    useShowContextmenu,
+} from "./ContextMenu";
+
+const contextMenuTypes = {
+    CARD_PRIORITY: 0,
+    CARD: 1,
+    PROJECT: 2,
+};
 
 function Kanban(props) {
     const {
@@ -13,24 +26,35 @@ function Kanban(props) {
         removeCard,
     } = useContext(KanbanContext);
     let cmRef = useRef(null);
+    let prTitleRef = useRef(null);
+    const hideContextMenu = useHideContextmenu(cmRef);
+    const showContextMenu = useShowContextmenu(cmRef);
     const [cmContent, setCmContent] = useState({
         card: null,
-        pos: null,
-        onlyPriority: false,
+        targetRef: null,
+        type: null,
     });
-    const toggleContextMenu = (pos, card, onlyPriority = false) => {
+    const toggleContextMenu = (ref, card, onlyPriority = false) => {
+        let type = contextMenuTypes.CARD;
+        if (onlyPriority) type = contextMenuTypes.CARD_PRIORITY;
         setCmContent({
             card: card,
-            pos: pos,
-            onlyPriority: onlyPriority,
+            targetRef: ref,
+            type: type,
         });
+        showContextMenu();
     };
     const { card } = cmContent;
     let cardPriority = false;
     if (card) cardPriority = card.priority;
-    const hideContextMenu = () => {
-        cmRef.current.setState({ visible: false });
-    };
+    const contextMenuProject = (
+        <>
+            <MenuItem>Edit title</MenuItem>
+            <MenuItem>Edit columns</MenuItem>
+            <MenuSeparator />
+            <MenuItem onClick={hideContextMenu}>Cancel</MenuItem>
+        </>
+    );
     const contextMenuPriority = (
         <>
             <MenuItem
@@ -53,7 +77,7 @@ function Kanban(props) {
             </MenuItem>
         </>
     );
-    const contextMenuMain = (
+    const contextMenuCard = (
         <>
             <MenuItem
                 onClick={() => {
@@ -85,11 +109,29 @@ function Kanban(props) {
 
     return (
         <div className="kanban">
-            <ContextMenu ref={cmRef} pos={cmContent.pos}>
-                {cmContent.onlyPriority ? contextMenuPriority : contextMenuMain}
+            <ContextMenu ref={cmRef} targetRef={cmContent.targetRef}>
+                {cmContent.type === contextMenuTypes.CARD
+                    ? contextMenuCard
+                    : contextMenuPriority}
             </ContextMenu>
 
-            <span className="projectTitle">Project Title</span>
+            <div className="projectTitle">
+                Project Title
+                <button
+                    ref={prTitleRef}
+                    onClick={() => {
+                        setCmContent({
+                            card: null,
+                            targetRef: prTitleRef.current,
+                            type: contextMenuTypes.PROJECT,
+                        });
+                        showContextMenu();
+                    }}
+                    className="projectMenuBtn"
+                >
+                    <MdMore className="projectMenuIcon" />
+                </button>
+            </div>
             <div className="columnsContainer">{columnComponents}</div>
         </div>
     );

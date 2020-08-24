@@ -5,6 +5,7 @@ class ContextMenu extends React.Component {
     state = {
         visible: false,
     };
+    allowHideEvent = false;
 
     componentDidMount() {
         document.addEventListener("click", this.handleClick);
@@ -19,14 +20,16 @@ class ContextMenu extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.pos != this.props.pos) this.handlePosChange();
+        if (prevProps.targetRef != this.props.targetRef) this.handlePosChange();
     }
 
     handlePosChange = () => {
-        const { pos } = this.props; // TODO: change this to represent ref
+        const { targetRef } = this.props;
+        this.allowHideEvent = false;
 
         this.setState({ visible: true }, () => {
-            if (!pos) return;
+            if (!targetRef) return;
+            let pos = targetRef.getBoundingClientRect();
             const clickX = pos.x + pos.width;
             const clickY = pos.y;
             const screenW = window.innerWidth;
@@ -58,11 +61,18 @@ class ContextMenu extends React.Component {
     };
 
     handleClick = (event) => {
+        if (!this.allowHideEvent) {
+            this.allowHideEvent = true;
+            return;
+        }
         const { visible } = this.state;
         let wasOutside = false;
         if (visible) wasOutside = !this.root.contains(event.target);
 
-        if (wasOutside && visible) this.setState({ visible: false });
+        if (wasOutside && visible) {
+            this.setState({ visible: false });
+            return;
+        }
     };
 
     handleScroll = () => {
@@ -157,6 +167,18 @@ export function MenuItem(props) {
             {selected ? <li>{props.children}</li> : props.children}
         </div>
     );
+}
+
+export function useHideContextmenu(ref, callback = null) {
+    return () => ref.current.setState({ visible: false }, callback);
+}
+
+export function useShowContextmenu(ref, callback = null) {
+    return () => {
+        if (!ref || !ref.current) return;
+        ref.current.handlePosChange();
+        ref.current.setState({ visible: true }, callback);
+    };
 }
 
 export default ContextMenu;

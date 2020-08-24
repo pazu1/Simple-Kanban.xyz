@@ -234,15 +234,10 @@ router.delete("/cards/:id", (req, res) => {
 
 var useErrorHandler = function (f, res) {
     return function () {
-        try {
-            return f.apply(this, arguments).catch((err) => {
-                console.error("THREAD CATCH", err.message);
-                return res.status(400).json(new Response(false, err.message)); // TODO: send correct status code
-            });
-        } catch (e) {
-            console.error("CATCH BLOCK", err.message);
-            return res.json(new Response(false, err.message));
-        }
+        return f.apply(this, arguments).catch((err) => {
+            console.error("THREAD CATCH", err.message);
+            return res.status(400).json(new Response(false, err.message));
+        });
     };
 };
 

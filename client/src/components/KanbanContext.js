@@ -8,7 +8,8 @@ const JWT = "jwt";
 const CARDS = "cards";
 const PROJECTS = "projects";
 
-// TODO: error handling
+// TODO: reporting errors to user and UI response to errors
+//       refactor setStates using prevState
 
 // This will correspond with the ones stored in the database
 class Card {
@@ -31,12 +32,14 @@ class Card {
 }
 
 class KanbanContextProvider extends React.Component {
-    constructor(props) {
+    constructor() {
         super();
         this.state = {
             columns: {},
             project_id: null,
-            unfinishedCard: null, // A card that is being edited is stored here
+            unfinishedColumn: null, // A column that is being edited
+            unfinishedCard: null, // A card that is being edited
+            synchronizing: true,
         };
         this.changeCardPosition = this.changeCardPosition.bind(this);
         this.addCard = this.addCard.bind(this);
@@ -91,6 +94,7 @@ class KanbanContextProvider extends React.Component {
         this.setState({
             project_id: projects[0].project_id,
             columns: newColumns,
+            synchronizing: false,
         });
     }
 
@@ -106,6 +110,7 @@ class KanbanContextProvider extends React.Component {
     }
 
     async removeCard(card) {
+        // TODO: wrap in setState
         let res = await this.API.deleteCard(card.id);
         let copyColumns = this.state.columns;
         let cardColumn = copyColumns[card.column];
@@ -116,12 +121,12 @@ class KanbanContextProvider extends React.Component {
             });
             let res = await this.API.updateColumns(cardColumn, []); // Update the indices
         }
-        this.setState({ columns: copyColumns });
+        this.setState({ columns: copyColumns }); // TODO: return
     }
 
     makeCardEditable(card) {
         card.finished = false;
-        this.setState({ unfinishedCard: card });
+        this.setState({ unfinishedCard: card }); // TODO: return
     }
 
     // Clear state.unfinishedCard and call API to add it to the database.
@@ -246,12 +251,12 @@ class KanbanContextProvider extends React.Component {
     }
 
     render() {
-        const { columns, unfinishedCard } = this.state;
+        const { columns, unfinishedCard, synchronizing } = this.state;
         const {
             addCard,
             removeCard,
-            makeCardEditable,
             updateCardPriority,
+            makeCardEditable,
             finishCardEdit,
             cancelCardEdit,
             changeCardPosition,
@@ -269,6 +274,7 @@ class KanbanContextProvider extends React.Component {
                     finishCardEdit,
                     cancelCardEdit,
                     changeCardPosition,
+                    synchronizing,
                 }}
             >
                 {this.props.children}
