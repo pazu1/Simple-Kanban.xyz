@@ -36,7 +36,7 @@ class KanbanContextProvider extends React.Component {
         super();
         this.state = {
             columns: {},
-            project_id: null,
+            currentProject: null,
             unfinishedColumn: null, // A column that is being edited
             unfinishedCard: null, // A card that is being edited
             synchronizing: true,
@@ -90,9 +90,10 @@ class KanbanContextProvider extends React.Component {
         });
 
         if (!resCards) return;
+        console.log(project);
 
         this.setState({
-            project_id: projects[0].project_id,
+            currentProject: project,
             columns: newColumns,
             synchronizing: false,
         });
@@ -150,7 +151,10 @@ class KanbanContextProvider extends React.Component {
         }
 
         // API call to add card and get id
-        let res = await this.API.postCard(editedCard, this.state.project_id);
+        let res = await this.API.postCard(
+            editedCard,
+            this.state.currentProject.project_id
+        );
         console.log(res);
         if (!res) {
             console.log("Error posting card");
@@ -251,7 +255,12 @@ class KanbanContextProvider extends React.Component {
     }
 
     render() {
-        const { columns, unfinishedCard, synchronizing } = this.state;
+        const {
+            columns,
+            currentProject,
+            unfinishedCard,
+            synchronizing,
+        } = this.state;
         const {
             addCard,
             removeCard,
@@ -266,6 +275,7 @@ class KanbanContextProvider extends React.Component {
             <KanbanContext.Provider
                 value={{
                     columns,
+                    currentProject,
                     unfinishedCard,
                     addCard,
                     removeCard,
