@@ -1,5 +1,6 @@
 export const ItemTypes = {
     CARD: "card",
+    COLUMN: "column",
 };
 
 export function arraymove(arr, fromIndex, toIndex) {

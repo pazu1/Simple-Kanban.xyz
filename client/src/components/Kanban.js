@@ -21,6 +21,7 @@ const contextMenuTypes = {
 function Kanban(props) {
     const {
         columns,
+        currentProject,
         makeCardEditable,
         updateCardPriority,
         removeCard,
@@ -34,6 +35,7 @@ function Kanban(props) {
         targetRef: null,
         type: null,
     });
+    const [editColumns, setEditColumns] = useState(false);
     const toggleContextMenu = (ref, card, onlyPriority = false) => {
         let type = contextMenuTypes.CARD;
         if (onlyPriority) type = contextMenuTypes.CARD_PRIORITY;
@@ -50,7 +52,14 @@ function Kanban(props) {
     const contextMenuProject = (
         <>
             <MenuItem>Edit title</MenuItem>
-            <MenuItem>Edit columns</MenuItem>
+            <MenuItem
+                onClick={() => {
+                    setEditColumns(true);
+                    hideContextMenu();
+                }}
+            >
+                Edit columns
+            </MenuItem>
             <MenuSeparator />
             <MenuItem onClick={hideContextMenu}>Cancel</MenuItem>
         </>
@@ -101,9 +110,47 @@ function Kanban(props) {
         </>
     );
 
+    let titlebarContent = (
+        <div className="projectTitle">
+            {currentProject ? currentProject.project_name : null}
+            <button
+                ref={prTitleRef}
+                onClick={() => {
+                    setCmContent({
+                        card: null,
+                        targetRef: prTitleRef.current,
+                        type: contextMenuTypes.PROJECT,
+                    });
+                    showContextMenu();
+                }}
+                className="projectMenuBtn"
+            >
+                <MdMore className="projectMenuIcon" />
+            </button>
+        </div>
+    );
+
+    if (editColumns)
+        titlebarContent = (
+            <div style={{ marginBottom: 30 }}>
+                <button
+                    className="kButton--red"
+                    onClick={() => setEditColumns(false)}
+                >
+                    Cancel
+                </button>
+                <button className="kButton--green">Done</button>
+            </div>
+        );
+
     let columnComponents = Object.keys(columns).map((key) => {
         return (
-            <KColumn key={key} columnName={key} cmToggle={toggleContextMenu} />
+            <KColumn
+                editColumns={editColumns}
+                key={key}
+                columnName={key}
+                cmToggle={toggleContextMenu}
+            />
         );
     });
 
@@ -112,26 +159,14 @@ function Kanban(props) {
             <ContextMenu ref={cmRef} targetRef={cmContent.targetRef}>
                 {cmContent.type === contextMenuTypes.CARD
                     ? contextMenuCard
-                    : contextMenuPriority}
+                    : cmContent.type === contextMenuTypes.CARD_PRIORITY
+                    ? contextMenuPriority
+                    : cmContent.type === contextMenuTypes.PROJECT
+                    ? contextMenuProject
+                    : null}
             </ContextMenu>
 
-            <div className="projectTitle">
-                Project Title
-                <button
-                    ref={prTitleRef}
-                    onClick={() => {
-                        setCmContent({
-                            card: null,
-                            targetRef: prTitleRef.current,
-                            type: contextMenuTypes.PROJECT,
-                        });
-                        showContextMenu();
-                    }}
-                    className="projectMenuBtn"
-                >
-                    <MdMore className="projectMenuIcon" />
-                </button>
-            </div>
+            {titlebarContent}
             <div className="columnsContainer">{columnComponents}</div>
         </div>
     );

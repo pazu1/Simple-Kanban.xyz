@@ -1,12 +1,12 @@
 import React, { useContext, useState } from "react";
-import { useDrop } from "react-dnd";
+import { useDrop, useDrag } from "react-dnd";
 
 import KCard from "./KCard";
 import { ItemTypes } from "../utils/const";
 import KanbanContext from "./KanbanContext";
 import "../styles/Kanban.scss";
 
-function KColumn({ columnName, cmToggle }) {
+function KColumn({ columnName, cmToggle, editColumns }) {
     const {
         addCard,
         cancelCardEdit,
@@ -36,6 +36,17 @@ function KColumn({ columnName, cmToggle }) {
             isOver: monitor.isOver(),
         }),
     });
+
+    const [{ isDragging }, dragColumn] = useDrag({
+        item: {
+            type: ItemTypes.COLUMN,
+            column: columnName,
+        },
+        collect: (monitor) => ({
+            isDragging: monitor.isDragging(),
+        }),
+    });
+
     let style = {};
     let cardComponents = columns[columnName].map((card, index) => {
         return (
@@ -61,10 +72,15 @@ function KColumn({ columnName, cmToggle }) {
 
     return (
         <div ref={cardComponents.length === 0 ? drop : null} className="column">
-            {columnName.toUpperCase()}
+            <div
+                className={editColumns ? "editableColumn" : null}
+                ref={editColumns ? dragColumn : null}
+            >
+                {columnName.toUpperCase()}
+            </div>
             <div
                 ref={cardComponents.length === 0 ? null : drop}
-                style={style}
+                style={editColumns ? { display: "none" } : style}
                 className="columnContent"
             >
                 <div
@@ -79,7 +95,9 @@ function KColumn({ columnName, cmToggle }) {
                 ></div>
                 {cardComponents}
             </div>
-            {unfinishedCard === null || unfinishedCard.column !== columnName ? (
+            {(unfinishedCard === null ||
+                unfinishedCard.column !== columnName) &&
+            !editColumns ? (
                 <button
                     className="addCardBtn"
                     onClick={() => {

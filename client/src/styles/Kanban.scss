@@ -183,3 +183,30 @@
     display: block;
 
 }
+
+.editableColumn {
+    background: $bgwhite;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 40px;
+    height: 40px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+.kButton {
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    font-size: 16px;
+    color: $bggray;
+
+    &--red {
+        @extend .kButton;
+        background: $red;
+    }
+    &--green {
+        margin-left: 15px;
+        @extend .kButton;
+        background: $green;
+    }
+}
