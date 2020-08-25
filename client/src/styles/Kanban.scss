@@ -210,3 +210,22 @@
         background: $green;
     }
 }
+
+.columnIcon {
+    cursor: pointer;
+
+    &--forward {
+        @extend .columnIcon;
+        margin-top: 7px;
+        float: right;
+    }
+    &--back {
+        @extend .columnIcon;
+        margin-top: 7px;
+        float: left;
+    }
+    &--more {
+        @extend .columnIcon;
+        margin-bottom: -5px;
+    }
+}

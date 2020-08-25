@@ -11,6 +11,20 @@ const PROJECTS = "projects";
 // TODO: reporting errors to user and UI response to errors
 //       refactor setStates using prevState
 
+class Column {
+    // TODO: make state.columns store an array of these
+    constructor(
+        title,
+        cards,
+        index, // used to save the order of the column to DB
+        finished = true // false if column is still being created or edited
+    ) {
+        this.title = title;
+        this.cards = cards;
+        this.index = index;
+        this.finished = finished;
+    }
+}
 // This will correspond with the ones stored in the database
 class Card {
     constructor(
@@ -27,7 +41,6 @@ class Card {
         this.column = column;
         this.priority = priority;
         this.finished = finished;
-        this.API = null;
     }
 }
 
@@ -37,7 +50,8 @@ class KanbanContextProvider extends React.Component {
         this.state = {
             columns: {},
             currentProject: null,
-            unfinishedColumn: null, // A column that is being edited
+            unfinishedColumns: [], // Columns that are being edited
+            unfinishedCTitle: null, // A column title being edited
             unfinishedCard: null, // A card that is being edited
             synchronizing: true,
         };
@@ -90,7 +104,7 @@ class KanbanContextProvider extends React.Component {
         });
 
         if (!resCards) return;
-        console.log(project);
+        console.log(newColumns);
 
         this.setState({
             currentProject: project,

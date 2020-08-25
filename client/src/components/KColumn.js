@@ -1,5 +1,8 @@
 import React, { useContext, useState } from "react";
 import { useDrop, useDrag } from "react-dnd";
+import MdArrowBack from "react-ionicons/lib/MdArrowDropleft";
+import MdArrowForward from "react-ionicons/lib/MdArrowDropright";
+import MdMore from "react-ionicons/lib/MdMore";
 
 import KCard from "./KCard";
 import { ItemTypes } from "../utils/const";
@@ -70,14 +73,31 @@ function KColumn({ columnName, cmToggle, editColumns }) {
         );
     });
 
+    const swapColumns = () => {
+        console.log(columns);
+    };
+
+    let columnTitle = <div>{columnName.toUpperCase()}</div>;
+
+    if (editColumns)
+        columnTitle = (
+            <div className={"editableColumn"} ref={dragColumn}>
+                <MdArrowBack
+                    onClick={swapColumns}
+                    className="columnIcon--back"
+                />
+                {columnName.toUpperCase()}
+                <MdMore className="columnIcon--more" />
+                <MdArrowForward
+                    onClick={swapColumns}
+                    className="columnIcon--forward"
+                />
+            </div>
+        );
+
     return (
         <div ref={cardComponents.length === 0 ? drop : null} className="column">
-            <div
-                className={editColumns ? "editableColumn" : null}
-                ref={editColumns ? dragColumn : null}
-            >
-                {columnName.toUpperCase()}
-            </div>
+            {columnTitle}
             <div
                 ref={cardComponents.length === 0 ? null : drop}
                 style={editColumns ? { display: "none" } : style}
