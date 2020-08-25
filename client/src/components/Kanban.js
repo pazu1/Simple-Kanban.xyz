@@ -143,12 +143,12 @@ function Kanban(props) {
             </div>
         );
 
-    let columnComponents = Object.keys(columns).map((key) => {
+    let columnComponents = columns.map((col) => {
         return (
             <KColumn
                 editColumns={editColumns}
-                key={key}
-                columnName={key}
+                key={col.title}
+                columnName={col.title}
                 cmToggle={toggleContextMenu}
             />
         );

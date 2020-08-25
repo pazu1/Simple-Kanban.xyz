@@ -51,7 +51,8 @@ function KColumn({ columnName, cmToggle, editColumns }) {
     });
 
     let style = {};
-    let cardComponents = columns[columnName].map((card, index) => {
+    const column = columns.find((col) => col.title === columnName);
+    let cardComponents = column.cards.map((card, index) => {
         return (
             <>
                 <KCard
