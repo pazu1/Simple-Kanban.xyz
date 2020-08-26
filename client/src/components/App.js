@@ -7,15 +7,18 @@ import Kanban from "./Kanban";
 import SideBar from "./SideBar";
 import TopBar from "./TopBar";
 import { KanbanContextProvider } from "./KanbanContext";
+import { FilterContextProvider } from "./FilterContext";
 
 function App(props) {
     return (
         <div>
             <DndProvider backend={HTML5Backend}>
                 <KanbanContextProvider>
-                    <TopBar />
                     <SideBar />
-                    <Kanban />
+                    <FilterContextProvider>
+                        <TopBar />
+                        <Kanban />
+                    </FilterContextProvider>
                 </KanbanContextProvider>
             </DndProvider>
         </div>

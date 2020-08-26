@@ -7,6 +7,7 @@ import MdMore from "react-ionicons/lib/MdMore";
 import KCard from "./KCard";
 import { ItemTypes } from "../utils/const";
 import KanbanContext from "./KanbanContext";
+import FilterContext from "./FilterContext";
 import "../styles/Kanban.scss";
 
 function KColumn({ columnName, cmToggle, editColumns }) {
@@ -17,6 +18,7 @@ function KColumn({ columnName, cmToggle, editColumns }) {
         columns,
         changeCardPosition,
     } = useContext(KanbanContext);
+    const { filter } = useContext(FilterContext);
     const [dropIndex, setDropIndex] = useState(-1);
     const [disableDrop, setDisableDrop] = useState(false);
     const [{ isOver }, drop] = useDrop({
@@ -52,7 +54,14 @@ function KColumn({ columnName, cmToggle, editColumns }) {
 
     let style = {};
     const column = columns.find((col) => col.title === columnName);
-    let cardComponents = column.cards.map((card, index) => {
+    let cards = column.cards;
+    console.log(filter);
+    if (filter.length) {
+        cards = cards.filter((card) =>
+            card.description.toUpperCase().includes(filter.toUpperCase())
+        );
+    }
+    let cardComponents = cards.map((card, index) => {
         return (
             <>
                 <KCard
@@ -97,10 +106,10 @@ function KColumn({ columnName, cmToggle, editColumns }) {
         );
 
     return (
-        <div ref={cardComponents.length === 0 ? drop : null} className="column">
+        <div ref={!cardComponents.length ? drop : null} className="column">
             {columnTitle}
             <div
-                ref={cardComponents.length === 0 ? null : drop}
+                ref={!cardComponents.length || filter.length ? null : drop}
                 style={editColumns ? { display: "none" } : style}
                 className="columnContent"
             >
@@ -118,7 +127,8 @@ function KColumn({ columnName, cmToggle, editColumns }) {
             </div>
             {(unfinishedCard === null ||
                 unfinishedCard.column !== columnName) &&
-            !editColumns ? (
+            !editColumns &&
+            !filter.length ? (
                 <button
                     className="addCardBtn"
                     onClick={() => {

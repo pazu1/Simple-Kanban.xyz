@@ -3,16 +3,11 @@ import React, { createContext } from "react";
 import { arraymove } from "../utils/const";
 import APIConnection from "../APIConnection";
 const KanbanContext = createContext();
-const API_URL = "api/";
-const JWT = "jwt";
-const CARDS = "cards";
-const PROJECTS = "projects";
 
 // TODO: reporting errors to user and UI response to errors
-//       refactor setStates using prevState
+// refactor setStates to be more robust, wrap more of the function into setState
 
 class Column {
-    // TODO: make state.columns store an array of these
     constructor(
         title,
         cards,
@@ -29,7 +24,7 @@ class Card {
         id, // unique key, -1 if has not been fetched from the API
         description, // text content
         index, // used to save the order of the cards to DB
-        column, // possible values eg. backlog, todo, doing...
+        column, // name of the column where the card belongs to
         priority, // integer between like 1 - 3
         finished = true // false if card is still being created or edited
     ) {
@@ -113,12 +108,14 @@ class KanbanContextProvider extends React.Component {
     }
 
     // Add a rendered card (to the current project)
-    addCard(column, index) {
+    addCard(columnTitle, index) {
         this.setState((prevState) => {
             let copyColumns = prevState.columns;
-            let copyColumn = copyColumns[column];
-            const card = new Card(-1, "", index, column, 1, false);
-            copyColumn.push(card);
+            let copyColumn = copyColumns.find(
+                (col) => col.title === columnTitle
+            );
+            const card = new Card(-1, "", index, columnTitle, 1, false);
+            copyColumn.cards.push(card);
             return { columns: copyColumns, unfinishedCard: card };
         });
     }
@@ -196,12 +193,20 @@ class KanbanContextProvider extends React.Component {
             });
             return;
         }
-        copyColumns[cancelledCard.column].pop();
+        copyColumns
+            .find((col) => col.title === cancelledCard.column)
+            .cards.pop();
         this.setState({
             unfinishedCard: null,
             columns: copyColumns,
         });
     }
+
+    async changeColumnPosition(column, toIndex) {}
+
+    async removeColumn(column) {}
+
+    async addColumn(columnTitle) {}
 
     // Change card index and/or column
     async changeCardPosition(card, toColumn, toIndex = 0) {
