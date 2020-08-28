@@ -4,6 +4,8 @@ import { arraymove } from "../utils/const";
 import APIConnection from "../APIConnection";
 const KanbanContext = createContext();
 
+// This class works as middleware between the UI and API calls
+
 // TODO: reporting errors to user and UI response to errors
 // refactor setStates to be more robust, wrap more of the function into setState
 
@@ -43,7 +45,7 @@ class KanbanContextProvider extends React.Component {
         this.state = {
             columns: [],
             currentProject: null,
-            unfinishedColumns: [], // Columns that are being edited
+            unfinishedColumns: [], // Columns that are being edited, must be empty when editing is done
             unfinishedCTitle: null, // A column title being edited
             unfinishedCard: null, // A card that is being edited
             synchronizing: true,
@@ -55,6 +57,7 @@ class KanbanContextProvider extends React.Component {
         this.finishCardEdit = this.finishCardEdit.bind(this);
         this.cancelCardEdit = this.cancelCardEdit.bind(this);
         this.updateCardPriority = this.updateCardPriority.bind(this);
+        this.moveColumn = this.moveColumn.bind(this);
     }
 
     async componentDidMount() {
@@ -202,11 +205,47 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
-    async changeColumnPosition(column, toIndex) {}
+    moveColumn(column, toRight) {
+        this.setState((prevState) => {
+            let copyColumns = [];
+            if (prevState.unfinishedColumns.length)
+                copyColumns = [...prevState.unfinishedColumns];
+            else copyColumns = [...prevState.columns];
+            let i = copyColumns.findIndex((c) => c.title === column);
+            let newi = i;
+            if (toRight) newi += 1;
+            else newi -= 1;
+            if (newi < 0 || newi > copyColumns.length + -1) return;
+            let save = copyColumns[i];
+            copyColumns[i] = copyColumns[newi];
+            copyColumns[newi] = save;
+            return {
+                unfinishedColumns: copyColumns,
+            };
+        });
+    }
 
-    async removeColumn(column) {}
+    removeColumn(column) {
+        this.setState((prevState) => {
+            let copyColumns = [];
+            if (prevState.unfinishedColumns.length)
+                copyColumns = [...prevState.unfinishedColumns];
+            else copyColumns = [...prevState.columns];
+            let i = copyColumns.findIndex((c) => c.title === column);
+            copyColumns.splice(i, 1);
+            return {
+                unfinishedColumns: copyColumns,
+            };
+        });
+    }
 
-    async addColumn(columnTitle) {}
+    addColumn(columnTitle) {}
+
+    cancelColumnEdit() {}
+
+    async finishColumnEdit() {
+        // Calls API
+    }
 
     // Change card index and/or column
     async changeCardPosition(card, toColumn, toIndex = 0) {
@@ -287,6 +326,7 @@ class KanbanContextProvider extends React.Component {
             currentProject,
             unfinishedCard,
             synchronizing,
+            unfinishedColumns,
         } = this.state;
         const {
             addCard,
@@ -296,6 +336,7 @@ class KanbanContextProvider extends React.Component {
             finishCardEdit,
             cancelCardEdit,
             changeCardPosition,
+            moveColumn,
         } = this;
 
         return (
@@ -311,7 +352,9 @@ class KanbanContextProvider extends React.Component {
                     finishCardEdit,
                     cancelCardEdit,
                     changeCardPosition,
+                    moveColumn,
                     synchronizing,
+                    unfinishedColumns,
                 }}
             >
                 {this.props.children}

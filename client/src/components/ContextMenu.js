@@ -26,6 +26,7 @@ class ContextMenu extends React.Component {
     handlePosChange = () => {
         const { targetRef } = this.props;
         this.allowHideEvent = false;
+        console.log(targetRef);
 
         this.setState({ visible: true }, () => {
             if (!targetRef) return;

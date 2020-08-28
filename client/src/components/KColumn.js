@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useRef, useContext, useState } from "react";
 import { useDrop, useDrag } from "react-dnd";
 import MdArrowBack from "react-ionicons/lib/MdArrowDropleft";
 import MdArrowForward from "react-ionicons/lib/MdArrowDropright";
@@ -10,14 +10,16 @@ import KanbanContext from "./KanbanContext";
 import FilterContext from "./FilterContext";
 import "../styles/Kanban.scss";
 
-function KColumn({ columnName, cmToggle, editColumns }) {
+function KColumn({ columnName, cmActivate, editColumns }) {
     const {
         addCard,
         cancelCardEdit,
         unfinishedCard,
         columns,
         changeCardPosition,
+        moveColumn,
     } = useContext(KanbanContext);
+    const cmRefColumn = useRef(null);
     const { filter } = useContext(FilterContext);
     const [dropIndex, setDropIndex] = useState(-1);
     const [disableDrop, setDisableDrop] = useState(false);
@@ -68,7 +70,7 @@ function KColumn({ columnName, cmToggle, editColumns }) {
                     setDropIndex={setDropIndex}
                     setDisableDrop={setDisableDrop}
                     card={card}
-                    cmToggle={cmToggle}
+                    cmActivate={cmActivate}
                 ></KCard>
                 <div
                     className="dropSpot"
@@ -83,31 +85,31 @@ function KColumn({ columnName, cmToggle, editColumns }) {
         );
     });
 
-    const swapColumns = () => {
-        console.log(columns);
-    };
-
-    let columnTitle = <div>{columnName.toUpperCase()}</div>;
-
-    if (editColumns)
-        columnTitle = (
-            <div className={"editableColumn"} ref={dragColumn}>
-                <MdArrowBack
-                    onClick={swapColumns}
-                    className="columnIcon--back"
-                />
-                {columnName.toUpperCase()}
-                <MdMore className="columnIcon--more" />
-                <MdArrowForward
-                    onClick={swapColumns}
-                    className="columnIcon--forward"
-                />
-            </div>
-        );
+    const columnTitle = <div>{columnName.toUpperCase()}</div>;
+    const editablecolumnTitle = (
+        <div className={"editableColumn"} ref={dragColumn}>
+            <MdArrowBack
+                onClick={() => moveColumn(columnName, false)}
+                className="columnIcon--back"
+            />
+            {columnName.toUpperCase()}
+            <MdMore
+                onClick={() => cmActivate(cmRefColumn.current, columnName, 3)}
+                className="columnIcon--more"
+            />
+            <MdArrowForward
+                onClick={() => moveColumn(columnName, true)}
+                className="columnIcon--forward"
+            />
+        </div>
+    );
 
     return (
-        <div ref={!cardComponents.length ? drop : null} className="column">
-            {columnTitle}
+        <div
+            ref={!cardComponents.length ? drop : cmRefColumn}
+            className="column"
+        >
+            {editColumns ? editablecolumnTitle : columnTitle}
             <div
                 ref={!cardComponents.length || filter.length ? null : drop}
                 style={editColumns ? { display: "none" } : style}

@@ -5,110 +5,45 @@ import "../styles/Kanban.scss";
 import KColumn from "./KColumn";
 import KanbanContext from "./KanbanContext";
 import ContextMenu, {
-    MenuItem,
-    SubMenu,
-    MenuSeparator,
     useHideContextmenu,
     useShowContextmenu,
 } from "./ContextMenu";
+import {
+    ContextMenuProject,
+    ContextMenuPriority,
+    ContextMenuCard,
+    ContextMenuColumn,
+} from "./ContextMenuContents";
 
 const contextMenuTypes = {
     CARD_PRIORITY: 0,
     CARD: 1,
     PROJECT: 2,
+    COLUMN: 3,
 };
 
 function Kanban(props) {
-    const {
-        columns,
-        currentProject,
-        makeCardEditable,
-        updateCardPriority,
-        removeCard,
-    } = useContext(KanbanContext);
+    const { columns, currentProject, unfinishedColumns } = useContext(
+        KanbanContext
+    );
     let cmRef = useRef(null);
     let prTitleRef = useRef(null);
     const hideContextMenu = useHideContextmenu(cmRef);
     const showContextMenu = useShowContextmenu(cmRef);
+    const [editColumns, setEditColumns] = useState(false);
     const [cmContent, setCmContent] = useState({
-        card: null,
+        item: null,
         targetRef: null,
         type: null,
     });
-    const [editColumns, setEditColumns] = useState(false);
-    const toggleContextMenu = (ref, card, onlyPriority = false) => {
-        let type = contextMenuTypes.CARD;
-        if (onlyPriority) type = contextMenuTypes.CARD_PRIORITY;
+    const activateContextMenu = (ref, item, type) => {
         setCmContent({
-            card: card,
+            item: item,
             targetRef: ref,
             type: type,
         });
         showContextMenu();
     };
-    const { card } = cmContent;
-    let cardPriority = false;
-    if (card) cardPriority = card.priority;
-    const contextMenuProject = (
-        <>
-            <MenuItem>Edit title</MenuItem>
-            <MenuItem
-                onClick={() => {
-                    setEditColumns(true);
-                    hideContextMenu();
-                }}
-            >
-                Edit columns
-            </MenuItem>
-            <MenuSeparator />
-            <MenuItem onClick={hideContextMenu}>Cancel</MenuItem>
-        </>
-    );
-    const contextMenuPriority = (
-        <>
-            <MenuItem
-                onClick={() => updateCardPriority(1, cmContent.card)}
-                selected={cardPriority === 1}
-            >
-                Low
-            </MenuItem>
-            <MenuItem
-                onClick={() => updateCardPriority(2, cmContent.card)}
-                selected={cardPriority === 2}
-            >
-                Medium
-            </MenuItem>
-            <MenuItem
-                onClick={() => updateCardPriority(3, cmContent.card)}
-                selected={cardPriority === 3}
-            >
-                High
-            </MenuItem>
-        </>
-    );
-    const contextMenuCard = (
-        <>
-            <MenuItem
-                onClick={() => {
-                    makeCardEditable(card);
-                    hideContextMenu();
-                }}
-            >
-                Edit label
-            </MenuItem>
-            <MenuItem
-                onClick={() => {
-                    removeCard(card);
-                    hideContextMenu();
-                }}
-            >
-                Delete
-            </MenuItem>
-            <SubMenu title="Priority">{contextMenuPriority}</SubMenu>
-            <MenuSeparator />
-            <MenuItem onClick={hideContextMenu}>Cancel</MenuItem>
-        </>
-    );
 
     let titlebarContent = (
         <div className="projectTitle">
@@ -116,12 +51,11 @@ function Kanban(props) {
             <button
                 ref={prTitleRef}
                 onClick={() => {
-                    setCmContent({
-                        card: null,
-                        targetRef: prTitleRef.current,
-                        type: contextMenuTypes.PROJECT,
-                    });
-                    showContextMenu();
+                    activateContextMenu(
+                        prTitleRef.current,
+                        null,
+                        contextMenuTypes.PROJECT
+                    );
                 }}
                 className="projectMenuBtn"
             >
@@ -142,14 +76,16 @@ function Kanban(props) {
                 <button className="kButton--green">Done</button>
             </div>
         );
-
-    let columnComponents = columns.map((col) => {
+    let columnObjects = null;
+    if (unfinishedColumns.length) columnObjects = unfinishedColumns;
+    else columnObjects = columns;
+    let columnComponents = columnObjects.map((col) => {
         return (
             <KColumn
                 editColumns={editColumns}
                 key={col.title}
                 columnName={col.title}
-                cmToggle={toggleContextMenu}
+                cmActivate={activateContextMenu}
             />
         );
     });
@@ -157,13 +93,21 @@ function Kanban(props) {
     return (
         <div className="kanban">
             <ContextMenu ref={cmRef} targetRef={cmContent.targetRef}>
-                {cmContent.type === contextMenuTypes.CARD
-                    ? contextMenuCard
-                    : cmContent.type === contextMenuTypes.CARD_PRIORITY
-                    ? contextMenuPriority
-                    : cmContent.type === contextMenuTypes.PROJECT
-                    ? contextMenuProject
-                    : null}
+                {cmContent.type === contextMenuTypes.CARD ? (
+                    <ContextMenuCard
+                        hideContextMenu={hideContextMenu}
+                        card={cmContent.item}
+                    />
+                ) : cmContent.type === contextMenuTypes.CARD_PRIORITY ? (
+                    <ContextMenuPriority card={cmContent.item} />
+                ) : cmContent.type === contextMenuTypes.PROJECT ? (
+                    <ContextMenuProject
+                        setEditColumns={setEditColumns}
+                        hideContextMenu={hideContextMenu}
+                    />
+                ) : cmContent.type === contextMenuTypes.COLUMN ? (
+                    <ContextMenuColumn hideContextMenu={hideContextMenu} />
+                ) : null}
             </ContextMenu>
 
             {titlebarContent}

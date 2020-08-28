@@ -7,7 +7,7 @@ import MdClose from "react-ionicons/lib/MdClose";
 import { ItemTypes, PriorityLevels } from "../utils/const";
 import KanbanContext from "./KanbanContext";
 
-function KCard({ card, setDisableDrop, setDropIndex, cmToggle }) {
+function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
     const { finishCardEdit, cancelCardEdit } = useContext(KanbanContext);
     const { priority, description, id, index, column } = card;
     const ref = useRef(null);
@@ -99,7 +99,7 @@ function KCard({ card, setDisableDrop, setDropIndex, cmToggle }) {
                     ref={priLabelRef}
                     className={`priorityLabel--${priorityText}`}
                     onClick={() => {
-                        cmToggle(priLabelRef.current, card, true);
+                        cmActivate(priLabelRef.current, card, 1);
                     }}
                 >
                     {priorityText}
@@ -107,7 +107,7 @@ function KCard({ card, setDisableDrop, setDropIndex, cmToggle }) {
                 <button
                     ref={moreBtnRef}
                     onClick={(e) => {
-                        cmToggle(moreBtnRef.current, card);
+                        cmActivate(moreBtnRef.current, card, 1);
                     }}
                     className="cardMenuBtn"
                 >
