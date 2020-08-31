@@ -89,6 +89,9 @@ function Kanban(props) {
                 >
                     Done
                 </button>
+                <button style={{ marginLeft: 60 }} className="kButton--green">
+                    + Add column
+                </button>
             </div>
         );
     let columnObjects = null;

@@ -1,24 +1,24 @@
 body {
     background: #f7f7f7;
-  margin: 0;
-  font-family: "Roboto";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    font-family: "Roboto";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 button {
-  padding: 3px 3px;
+    padding: 3px 3px;
 }
 
 .App {
-  position: absolute;
-  width: 100%;
-  margin: auto;
-  display: flex;
-  flex-direction: row;
+    position: absolute;
+    width: 100%;
+    margin: auto;
+    display: flex;
+    flex-direction: row;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
 }
