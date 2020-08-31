@@ -229,6 +229,7 @@ class KanbanContextProvider extends React.Component {
     }
 
     removeColumn(columnTitle) {
+        console.log("REMOVING", columnTitle);
         this.setState((prevState) => {
             let copyColumns = [];
             if (prevState.unfinishedColumns.length)
