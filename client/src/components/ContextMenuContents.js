@@ -74,11 +74,15 @@ const ContextMenuCard = ({ card, hideContextMenu }) => {
     );
 };
 
-const ContextMenuColumn = ({ hideContextMenu }) => {
+const ContextMenuColumn = ({ hideContextMenu, column }) => {
+    const { removeColumn } = useContext(KanbanContext);
+    const { title } = column;
     return (
         <>
             <MenuItem>Edit column title</MenuItem>
-            <MenuItem>Delete column</MenuItem>
+            <MenuItem onClick={() => removeColumn(title)}>
+                Delete column
+            </MenuItem>
             <MenuSeparator />
             <MenuItem onClick={hideContextMenu}>Cancel</MenuItem>
         </>
