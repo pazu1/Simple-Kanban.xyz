@@ -242,15 +242,20 @@ router.put("/projects/columns", (req, res) => {
                 UPDATE project AS p
                 SET k_columns = $1
                 WHERE p.project_id = $2
-                AND p.user_id = $3;
+                AND p.user_id = $3
+                RETURNING p.project_id;
             `,
                 [newColumns, project_id, user_id]
             )
-            .then(() => {
-                if (deleted.length) {
-                    pool.query(`DELETE FROM card WHERE k_column = ANY($1)`, [
-                        deleted,
-                    ]);
+            .then((qRes) => {
+                console.log(qRes);
+                if (deleted.length && qRes.rowCount) {
+                    const authorizedProjectId = qRes.rows[0].project_id;
+                    pool.query(
+                        `DELETE FROM card WHERE k_column = ANY($1)
+                        AND project_id = $2`,
+                        [deleted, authorizedProjectId]
+                    );
                 }
             })
             .then(() => {
