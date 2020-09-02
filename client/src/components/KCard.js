@@ -99,7 +99,7 @@ function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
                     ref={priLabelRef}
                     className={`priorityLabel--${priorityText}`}
                     onClick={() => {
-                        cmActivate(priLabelRef.current, card, 1);
+                        cmActivate(priLabelRef.current, card, 0);
                     }}
                 >
                     {priorityText}
