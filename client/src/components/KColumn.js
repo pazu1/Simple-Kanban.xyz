@@ -10,7 +10,8 @@ import KanbanContext from "./KanbanContext";
 import FilterContext from "./FilterContext";
 import "../styles/Kanban.scss";
 
-function KColumn({ columnName, cmActivate, editColumns }) {
+function KColumn({ column, cmActivate, editColumns }) {
+    const columnName = column.title;
     const {
         addCard,
         cancelCardEdit,
@@ -55,7 +56,6 @@ function KColumn({ columnName, cmActivate, editColumns }) {
     });
 
     let style = {};
-    const column = columns.find((col) => col.title === columnName);
     let cards = column.cards;
     if (filter.length) {
         cards = cards.filter((card) =>

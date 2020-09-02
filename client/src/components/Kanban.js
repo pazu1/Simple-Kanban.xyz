@@ -29,6 +29,7 @@ function Kanban(props) {
         unfinishedColumns,
         cancelColumnEdit,
         finishColumnEdit,
+        addColumn,
     } = useContext(KanbanContext);
     let cmRef = useRef(null);
     let prTitleRef = useRef(null);
@@ -89,7 +90,11 @@ function Kanban(props) {
                 >
                     Done
                 </button>
-                <button style={{ marginLeft: 60 }} className="kButton--green">
+                <button
+                    onClick={() => addColumn("added col")}
+                    style={{ marginLeft: 60 }}
+                    className="kButton--green"
+                >
                     + Add column
                 </button>
             </div>
@@ -102,7 +107,7 @@ function Kanban(props) {
             <KColumn
                 editColumns={editColumns}
                 key={col.title}
-                columnName={col.title}
+                column={col}
                 cmActivate={activateContextMenu}
             />
         );

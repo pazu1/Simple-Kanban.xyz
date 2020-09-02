@@ -89,13 +89,14 @@ class APIConnection {
         );
     }
 
-    async updateColumnArray(newColumns, project_id) {
+    async updateColumnArray(newColumns, project_id, deleted = []) {
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 newColumns: newColumns,
                 project_id: project_id,
+                deleted: deleted, // Each card in these columns will be deleted
             }),
         };
         return fetch(

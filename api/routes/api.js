@@ -4,8 +4,8 @@ const jwt = require("express-jwt");
 const jsonwebtoken = require("jsonwebtoken");
 const pgp = require("pg-promise")();
 
-const pool = require("../userdata/db").pool;
-const pgpPool = require("../userdata/db").pgpPool;
+const db = require("../userdata/db");
+const pool = db.pool;
 
 // TODO: test API for errors, make sure all cases are covered
 //       psql triggers
@@ -119,7 +119,7 @@ router.get("/cards/:id", (req, res) => {
     }, res)();
 });
 
-// update two columns of cards
+// update two columns of cards or a single if only one provided
 router.put("/cards/", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -230,21 +230,29 @@ router.delete("/cards/:id", (req, res) => {
     }, res)();
 });
 
-//  update column array
+//  update array of column names
 router.put("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
-        const { newColumns, project_id } = req.body;
+        const { newColumns, project_id, deleted } = req.body;
+
         return pool
             .query(
                 `
                 UPDATE project AS p
                 SET k_columns = $1
                 WHERE p.project_id = $2
-                AND p.user_id = $3
+                AND p.user_id = $3;
             `,
                 [newColumns, project_id, user_id]
             )
+            .then(() => {
+                if (deleted.length) {
+                    pool.query(`DELETE FROM card WHERE k_column = ANY($1)`, [
+                        deleted,
+                    ]);
+                }
+            })
             .then(() => {
                 return res.json(new Response(true, "Card updated."));
             });

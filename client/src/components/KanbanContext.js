@@ -61,6 +61,7 @@ class KanbanContextProvider extends React.Component {
         this.cancelColumnEdit = this.cancelColumnEdit.bind(this);
         this.finishColumnEdit = this.finishColumnEdit.bind(this);
         this.removeColumn = this.removeColumn.bind(this);
+        this.addColumn = this.addColumn.bind(this);
     }
 
     async componentDidMount() {
@@ -229,7 +230,6 @@ class KanbanContextProvider extends React.Component {
     }
 
     removeColumn(columnTitle) {
-        console.log("REMOVING", columnTitle);
         this.setState((prevState) => {
             let copyColumns = [];
             if (prevState.unfinishedColumns.length)
@@ -243,7 +243,19 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
-    addColumn(columnTitle) {}
+    addColumn(columnTitle) {
+        this.setState((prevState) => {
+            let copyColumns = [];
+            if (prevState.unfinishedColumns.length)
+                copyColumns = [...prevState.unfinishedColumns];
+            else copyColumns = [...prevState.columns];
+            copyColumns.push(new Column(columnTitle, [], true));
+            console.log("ADDed", copyColumns);
+            return {
+                unfinishedColumns: copyColumns,
+            };
+        });
+    }
 
     cancelColumnEdit() {
         this.setState({ unfinishedColumns: [] });
@@ -252,12 +264,23 @@ class KanbanContextProvider extends React.Component {
     async finishColumnEdit() {
         this.setState((prevState) => {
             let copyColArray = prevState.unfinishedColumns;
+
+            if (!copyColArray.length)
+                // Avoid deleting all columns by some mistake
+                return;
+
+            const deletedCols = prevState.columns
+                .filter((c) => {
+                    return (
+                        copyColArray.findIndex((x) => x.title === c.title) < 0
+                    );
+                })
+                .map((c) => c.title);
+
             let { project_id } = prevState.currentProject;
             let columnNames = copyColArray.map((c) => c.title);
-            this.API.updateColumnArray(columnNames, project_id);
+            this.API.updateColumnArray(columnNames, project_id, deletedCols);
             // if res success
-            console.log(copyColArray);
-
             return {
                 unfinishedColumns: [],
                 columns: copyColArray,
@@ -358,6 +381,7 @@ class KanbanContextProvider extends React.Component {
             cancelColumnEdit,
             finishColumnEdit,
             removeColumn,
+            addColumn,
         } = this;
 
         return (
@@ -379,6 +403,7 @@ class KanbanContextProvider extends React.Component {
                     cancelColumnEdit,
                     finishColumnEdit,
                     removeColumn,
+                    addColumn,
                 }}
             >
                 {this.props.children}
