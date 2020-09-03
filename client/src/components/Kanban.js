@@ -38,8 +38,15 @@ function Kanban(props) {
     let prTitleRef = useRef(null);
     const hideContextMenu = useHideContextmenu(cmRef);
     const showContextMenu = useShowContextmenu(cmRef);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalContent, setModalContent] = useState(1);
+    const [modalActivate, setModalActivate] = useState({
+        opened: false,
+        item: null,
+        type: null,
+    });
+    const setModalOpen = (visible) => {
+        setModalActivate({ opened: false, item: null, type: null });
+    };
+
     const [cmContent, setCmContent] = useState({
         item: null,
         targetRef: null,
@@ -97,8 +104,11 @@ function Kanban(props) {
                 </button>
                 <button
                     onClick={() => {
-                        setModalContent(promptTypes.ADDING_COLUMN);
-                        setModalOpen(true);
+                        setModalActivate({
+                            opened: true,
+                            item: null,
+                            type: promptTypes.ADDING_COLUMN,
+                        });
                         //addColumn("added col") add this to modal prompt
                     }}
                     style={{ marginLeft: 60 }}
@@ -125,9 +135,10 @@ function Kanban(props) {
     return (
         <div className="kanban">
             <PromptModal
-                modalOpen={modalOpen}
+                modalOpen={modalActivate.opened}
                 setModalOpen={setModalOpen}
-                promptType={modalContent}
+                promptType={modalActivate.type}
+                item={modalActivate.item}
             />
             <ContextMenu ref={cmRef} targetRef={cmContent.targetRef}>
                 {cmContent.type === contextMenuTypes.CARD ? (
@@ -145,6 +156,7 @@ function Kanban(props) {
                 ) : cmContent.type === contextMenuTypes.COLUMN ? (
                     <ContextMenuColumn
                         column={cmContent.item}
+                        setModalActivate={setModalActivate}
                         hideContextMenu={hideContextMenu}
                     />
                 ) : null}

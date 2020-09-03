@@ -11,11 +11,11 @@ export const promptTypes = {
 };
 
 function PromptModal(props) {
-    const { modalOpen, setModalOpen, promptType } = props;
+    const { modalOpen, setModalOpen, promptType, item } = props;
     const [editName, setEditName] = useState("");
-    const { addColumn } = useContext(KanbanContext);
+    const { addColumn, removeColumn } = useContext(KanbanContext);
     const content =
-        promptType === promptTypes.ADDING_COLUMN ? (
+        promptType === promptTypes.ADDING_COLUMN ? ( // TODO: validate user input
             <>
                 <div style={{ paddingTop: 10 }}>Enter new column name:</div>
                 <textarea
@@ -42,7 +42,26 @@ function PromptModal(props) {
                 </button>
             </>
         ) : promptType === promptTypes.DELETING_COLUMN ? (
-            <div>Are you sure you want to delete this column?</div>
+            <>
+                <div style={{ paddingTop: 10 }}>
+                    Are you sure you want to delete column {item}?
+                </div>
+                <button
+                    className="mButton--red"
+                    onClick={() => setModalOpen(false)}
+                >
+                    Cancel
+                </button>
+                <button
+                    onClick={() => {
+                        removeColumn(item);
+                        setModalOpen(false);
+                    }}
+                    className="mButton--green"
+                >
+                    Confirm
+                </button>
+            </>
         ) : null;
 
     useEffect(() => {
