@@ -261,29 +261,29 @@ class KanbanContextProvider extends React.Component {
         this.setState({ unfinishedColumns: [] });
     }
 
+    // Clear state.unfinishedColumns and call API to update the database
+    // Called after a the user clicks "Done" in the edit columns menu
+    // This includes editing column titles, adding and deleting columns.
     async finishColumnEdit() {
         this.setState((prevState) => {
-            let copyColArray = prevState.unfinishedColumns;
-
-            if (!copyColArray.length)
+            let copyColUF = prevState.unfinishedColumns;
+            if (!copyColUF.length)
                 // Avoid deleting all columns by some mistake
                 return;
 
-            const deletedCols = prevState.columns
+            const deletedCols = prevState.columns // Get deleted ones
                 .filter((c) => {
-                    return (
-                        copyColArray.findIndex((x) => x.title === c.title) < 0
-                    );
+                    return copyColUF.findIndex((x) => x.title === c.title) < 0;
                 })
                 .map((c) => c.title);
 
             let { project_id } = prevState.currentProject;
-            let columnNames = copyColArray.map((c) => c.title);
+            let columnNames = copyColUF.map((c) => c.title);
             this.API.updateColumnArray(columnNames, project_id, deletedCols);
             // if res success
             return {
                 unfinishedColumns: [],
-                columns: copyColArray,
+                columns: copyColUF,
             };
         });
     }

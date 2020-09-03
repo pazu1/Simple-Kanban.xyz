@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import KanbanContext from "./KanbanContext";
-import ContextMenu, { MenuItem, SubMenu, MenuSeparator } from "./ContextMenu";
+import { MenuItem, SubMenu, MenuSeparator } from "./ContextMenu";
 
 const ContextMenuProject = ({ setEditColumns, hideContextMenu }) => {
     return (
