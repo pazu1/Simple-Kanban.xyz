@@ -105,7 +105,7 @@ function KColumn({ column, cmActivate, editColumns }) {
 
     return (
         <div
-            ref={!cardComponents.length ? drop : cmRefColumn}
+            ref={!cardComponents.length && !filter.length ? drop : cmRefColumn}
             className="column"
         >
             {editColumns ? editablecolumnTitle : columnTitle}
