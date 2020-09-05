@@ -20,7 +20,8 @@ class ContextMenu extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.targetRef != this.props.targetRef) this.handlePosChange();
+        if (prevProps.targetRef !== this.props.targetRef)
+            this.handlePosChange();
     }
 
     handlePosChange = () => {

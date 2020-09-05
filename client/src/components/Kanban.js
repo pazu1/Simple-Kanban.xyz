@@ -1,9 +1,11 @@
 import React, { useContext, useState, useRef } from "react";
+import Modal from "react-modal";
 import MdMore from "react-ionicons/lib/MdMore";
 
 import "../styles/Kanban.scss";
 import KColumn from "./KColumn";
 import KanbanContext from "./KanbanContext";
+import PromptModal, { promptTypes } from "./PromptModal";
 import ContextMenu, {
     useHideContextmenu,
     useShowContextmenu,
@@ -21,6 +23,7 @@ const contextMenuTypes = {
     PROJECT: 2,
     COLUMN: 3,
 };
+Modal.setAppElement("#root");
 
 function Kanban(props) {
     const {
@@ -29,18 +32,27 @@ function Kanban(props) {
         unfinishedColumns,
         cancelColumnEdit,
         finishColumnEdit,
-        addColumn,
     } = useContext(KanbanContext);
+
     let cmRef = useRef(null);
     let prTitleRef = useRef(null);
     const hideContextMenu = useHideContextmenu(cmRef);
     const showContextMenu = useShowContextmenu(cmRef);
-    const [editColumns, setEditColumns] = useState(false);
+    const [modalActivate, setModalActivate] = useState({
+        opened: false,
+        item: null,
+        type: null,
+    });
+    const setModalOpen = (visible) => {
+        setModalActivate({ opened: false, item: null, type: null });
+    };
+
     const [cmContent, setCmContent] = useState({
         item: null,
         targetRef: null,
         type: null,
     });
+    const [editColumns, setEditColumns] = useState(false);
     const activateContextMenu = (ref, item, type) => {
         setCmContent({
             item: item,
@@ -91,7 +103,14 @@ function Kanban(props) {
                     Done
                 </button>
                 <button
-                    onClick={() => addColumn("added col")}
+                    onClick={() => {
+                        setModalActivate({
+                            opened: true,
+                            item: null,
+                            type: promptTypes.ADDING_COLUMN,
+                        });
+                        //addColumn("added col") add this to modal prompt
+                    }}
                     style={{ marginLeft: 60 }}
                     className="kButton--green"
                 >
@@ -115,6 +134,12 @@ function Kanban(props) {
 
     return (
         <div className="kanban">
+            <PromptModal
+                modalOpen={modalActivate.opened}
+                setModalOpen={setModalOpen}
+                promptType={modalActivate.type}
+                item={modalActivate.item}
+            />
             <ContextMenu ref={cmRef} targetRef={cmContent.targetRef}>
                 {cmContent.type === contextMenuTypes.CARD ? (
                     <ContextMenuCard
@@ -131,6 +156,7 @@ function Kanban(props) {
                 ) : cmContent.type === contextMenuTypes.COLUMN ? (
                     <ContextMenuColumn
                         column={cmContent.item}
+                        setModalActivate={setModalActivate}
                         hideContextMenu={hideContextMenu}
                     />
                 ) : null}

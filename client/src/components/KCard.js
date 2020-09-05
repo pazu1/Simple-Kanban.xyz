@@ -13,7 +13,6 @@ function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
     const ref = useRef(null);
     const moreBtnRef = useRef(null);
     const priLabelRef = useRef(null);
-    let formRef = useRef(null);
     const [editFormDesc, setEditFormDesc] = useState();
     let dropAfterCard = false;
     let dropIndex = null;
@@ -67,10 +66,6 @@ function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
         cancelCardEdit();
     }
 
-    const handleFormSubmit = () => {
-        finishCardEdit(editFormDesc);
-    };
-
     let priorityText = PriorityLevels[priority];
     let displayContents = (
         <>
@@ -78,15 +73,13 @@ function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
                 {priorityText}
             </div>
             <span>
-                <form ref={(e) => (formRef = e)} onSubmit={handleFormSubmit}>
-                    <textarea
-                        autoFocus
-                        className="cardTextArea"
-                        type="text"
-                        onChange={(e) => setEditFormDesc(e.target.value)}
-                        value={editFormDesc}
-                    />
-                </form>
+                <textarea
+                    autoFocus
+                    className="cardTextArea"
+                    type="text"
+                    onChange={(e) => setEditFormDesc(e.target.value)}
+                    value={editFormDesc}
+                />
             </span>
         </>
     );
@@ -145,7 +138,7 @@ function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
                     </button>
                     <button
                         onClick={() => {
-                            formRef.dispatchEvent(new Event("submit"));
+                            finishCardEdit(editFormDesc);
                         }}
                         style={{ background: !editFormDesc ? "#a1a1a1" : null }}
                         disabled={!editFormDesc}

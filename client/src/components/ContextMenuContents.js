@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import KanbanContext from "./KanbanContext";
-import ContextMenu, { MenuItem, SubMenu, MenuSeparator } from "./ContextMenu";
+import { MenuItem, SubMenu, MenuSeparator } from "./ContextMenu";
+import { promptTypes } from "./PromptModal";
 
 const ContextMenuProject = ({ setEditColumns, hideContextMenu }) => {
     return (
@@ -74,14 +75,28 @@ const ContextMenuCard = ({ card, hideContextMenu }) => {
     );
 };
 
-const ContextMenuColumn = ({ hideContextMenu, column }) => {
-    const { removeColumn } = useContext(KanbanContext);
+const ContextMenuColumn = ({ hideContextMenu, column, setModalActivate }) => {
     return (
         <>
-            <MenuItem>Edit column title</MenuItem>
             <MenuItem
                 onClick={() => {
-                    removeColumn(column);
+                    setModalActivate({
+                        opened: true,
+                        item: column,
+                        type: promptTypes.EDITING_COLUMN,
+                    });
+                    hideContextMenu();
+                }}
+            >
+                Edit column title
+            </MenuItem>
+            <MenuItem
+                onClick={() => {
+                    setModalActivate({
+                        opened: true,
+                        item: column,
+                        type: promptTypes.DELETING_COLUMN,
+                    });
                     hideContextMenu();
                 }}
             >
