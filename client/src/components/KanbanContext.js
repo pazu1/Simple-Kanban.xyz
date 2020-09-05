@@ -11,10 +11,12 @@ const KanbanContext = createContext();
 
 class Column {
     constructor(
+        id,
         title,
         cards,
         finished = true // false if column is still being created or edited
     ) {
+        this.id = id;
         this.title = title;
         this.cards = cards;
         this.finished = finished;
@@ -26,14 +28,15 @@ class Card {
         id, // unique key, -1 if has not been fetched from the API
         description, // text content
         index, // used to save the order of the cards to DB
-        column, // name of the column where the card belongs to
+        column_id, // id of the column where the card belongs to
+        column_title, // name of the column where the card belongs to
         priority, // integer between like 1 - 3
         finished = true // false if card is still being created or edited
     ) {
         this.id = id;
         this.description = description;
         this.index = index;
-        this.column = column;
+        this.column_id = column_id;
         this.priority = priority;
         this.finished = finished;
     }
@@ -69,11 +72,23 @@ class KanbanContextProvider extends React.Component {
         this.API = new APIConnection();
         await this.API.getToken();
 
+        // Get project
         let resProjects = await this.API.getProjects();
         let projects = resProjects.content;
         if (!projects) return;
-        let project = projects[0]; // TODO: this should probably be the project that the user last accessed, now it's just the first one in the array
-        let resCards = await this.API.getCards(project.project_id);
+        let project = {
+            projectId: null,
+            columns: [],
+            projectName: "",
+        };
+        project.projectId = projects[0].project_id;
+        project.projectName = projects[0].project_name;
+        project.columns = projects
+            .filter((pr) => pr.project_id === project.projectId)
+            .map((pr) => {
+                return new Column(pr.k_column_id, pr.title, [], true);
+            });
+        let resCards = await this.API.getCards(project.projectId);
         let fetchedCards = resCards.content;
         let cards = fetchedCards
             .map((c) => {
@@ -81,7 +96,8 @@ class KanbanContextProvider extends React.Component {
                     c.card_id,
                     c.description,
                     c.k_index,
-                    c.k_column,
+                    c.k_column_id,
+                    "",
                     c.k_priority
                 );
             })
@@ -90,15 +106,11 @@ class KanbanContextProvider extends React.Component {
                 let b = cb.index;
                 return a < b ? -1 : a > b ? 1 : 0;
             });
-
-        let columns = project.k_columns;
-        let newColumns = [];
-        columns.forEach((col, i) => {
-            let newCol = new Column(col, []);
-            newColumns.push(newCol);
+        project.columns.forEach((col, i) => {
             cards.forEach((c) => {
-                if (c.column === col) {
-                    newCol.cards.push(c);
+                if (c.column_id === col.id) {
+                    c.column_title = col.title;
+                    project.columns[i].cards.push(c);
                 }
             });
         });
@@ -107,7 +119,7 @@ class KanbanContextProvider extends React.Component {
 
         this.setState({
             currentProject: project,
-            columns: newColumns,
+            columns: project.columns,
             synchronizing: false,
         });
     }
@@ -302,21 +314,18 @@ class KanbanContextProvider extends React.Component {
 
     // Change card index and/or column
     async changeCardPosition(card, toColumn, toIndex = 0) {
-        const ca = toColumn;
-        const cb = card.column;
-        const callAPI = async () => {
-            let res = await this.API.updateColumns(
-                this.state.columns.find((col) => col.title === ca).cards,
-                this.state.columns.find((col) => col.title === cb).cards
-            );
-        };
-        if (card.column === toColumn) {
+        const ca = toColumn.id; // TODO: by ID
+        const cb = card.column_id;
+        const callAPI = async () => {};
+        if (card.column_id === toColumn.id) {
             this.setState(
                 (prevState) => {
                     let copyColumns = prevState.columns;
                     let array = copyColumns.find(
-                        (col) => col.title === toColumn
+                        (col) => col.id === toColumn.id
                     ).cards;
+                    console.log(array);
+                    console.log();
                     let fromIndex = array.findIndex((c) => c === card);
                     arraymove(array, fromIndex, toIndex);
 
@@ -334,14 +343,16 @@ class KanbanContextProvider extends React.Component {
             (prevState) => {
                 let copyColumns = prevState.columns;
                 let toColumnObj = copyColumns.find(
-                    (col) => col.title === toColumn
+                    (col) => col.id === toColumn.id
                 );
                 let oldColumnObj = copyColumns.find(
-                    (col) => col.title === card.column
+                    (col) => col.id === card.column_id
                 );
                 toColumnObj.cards.splice(toIndex, 0, card);
-                card.column = toColumn;
+                card.column_id = toColumn.id; //  MOVING CARD TO A DIFFERENT COLUMN
+                card.column_title = toColumn.title; // --||--
 
+                console.log(oldColumnObj);
                 var i = oldColumnObj.cards.indexOf(card);
 
                 oldColumnObj.cards.splice(i, 1);

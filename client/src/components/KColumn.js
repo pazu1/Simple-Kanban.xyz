@@ -29,15 +29,18 @@ function KColumn({ column, cmActivate, editColumns }) {
         drop: (item) => {
             if (cardComponents.length === 0) {
                 // No cards in column
-                changeCardPosition(item.card, columnName, 0);
+                changeCardPosition(item.card, column, 0);
                 return;
             }
             if (disableDrop) return;
             if (dropIndex === -1) return;
             let finalIndex = dropIndex;
-            if (item.card.index < dropIndex && item.card.column === columnName)
+            if (
+                item.card.index < dropIndex &&
+                item.card.column_id === column.id
+            )
                 finalIndex -= 1;
-            changeCardPosition(item.card, columnName, finalIndex);
+            changeCardPosition(item.card, column, finalIndex);
             setDropIndex(-1);
         },
         collect: (monitor) => ({
@@ -48,7 +51,7 @@ function KColumn({ column, cmActivate, editColumns }) {
     const [{ isDragging }, dragColumn] = useDrag({
         item: {
             type: ItemTypes.COLUMN,
-            column: columnName,
+            column: column,
         },
         collect: (monitor) => ({
             isDragging: monitor.isDragging(),

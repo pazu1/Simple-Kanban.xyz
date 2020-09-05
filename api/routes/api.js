@@ -68,14 +68,13 @@ router.get("/projects", (req, res) => {
         const { user_id } = req.user;
         const allProjects = await pool.query(
             `
-            SELECT project_id, project_name, k_columns
-                FROM project pr 
-                WHERE user_id = $1
+            SELECT pr.project_id, pr.project_name, kc.title, kc.k_column_id
+                FROM project pr INNER JOIN k_column kc
+                ON pr.user_id = 1 AND kc.user_id = 1;
             `,
             [user_id]
         );
         if (!allProjects.rows.length) throw new Error("No projects found.");
-
         return res.json(
             new Response(true, "Projects retrieved.", allProjects.rows)
         );
@@ -89,7 +88,7 @@ router.get("/cards", (req, res) => {
         const { project_id } = req.query;
         const allCards = await pool.query(
             `
-            SELECT cr.description, cr.card_id, cr.k_column , cr.k_index, cr.k_priority
+            SELECT cr.description, cr.card_id, cr.k_column_id , cr.k_index, cr.k_priority
                 FROM project pr 
                 INNER JOIN card cr ON cr.project_id = pr.project_id 
                 AND pr.user_id = $1 AND pr.project_id = $2
@@ -108,7 +107,7 @@ router.get("/cards/:id", (req, res) => {
         const { id } = req.params;
         const card = await pool.query(
             `
-                SELECT cr.description, cr.card_id, cr.k_column
+                SELECT cr.description, cr.card_id, cr.k_column_id
                     FROM project pr 
                     INNER JOIN card cr ON cr.project_id = pr.project_id 
                     WHERE pr.user_id = $1 AND cr.card_id = $2`,

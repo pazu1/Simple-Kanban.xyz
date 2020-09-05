@@ -9,7 +9,7 @@ import KanbanContext from "./KanbanContext";
 
 function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
     const { finishCardEdit, cancelCardEdit } = useContext(KanbanContext);
-    const { priority, description, id, index, column } = card;
+    const { priority, description, id, index, column_id, column_title } = card;
     const ref = useRef(null);
     const moreBtnRef = useRef(null);
     const priLabelRef = useRef(null);
@@ -47,8 +47,7 @@ function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
             if (dropAfterCard) {
                 dropIndex += 1;
             }
-
-            if (column === item.card.column)
+            if (column_id === item.card.column_id)
                 if (
                     (index - item.card.index === 1 && !dropAfterCard) ||
                     (index - item.card.index === -1 && dropAfterCard) ||
