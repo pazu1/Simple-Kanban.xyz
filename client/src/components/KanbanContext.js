@@ -6,7 +6,7 @@ const KanbanContext = createContext();
 
 // This class works as middleware between the UI and API calls
 
-// TODO: reporting errors to user and UI response to errors
+// TODO: reporting errors to user and UI feedback
 // refactor setStates to be more robust, wrap more of the function into setState
 
 class Column {
@@ -71,11 +71,9 @@ class KanbanContextProvider extends React.Component {
         let resProjects = await this.API.getProjects();
         let projects = resProjects.content;
         if (!projects) return;
-        console.log(projects);
-        let project = projects[0]; // TODO: this should probably be the project that the user last accessed, now it's just the first one in the list
+        let project = projects[0]; // TODO: this should probably be the project that the user last accessed, now it's just the first one in the array
         let resCards = await this.API.getCards(project.project_id);
         let fetchedCards = resCards.content;
-        console.log(fetchedCards);
         let cards = fetchedCards
             .map((c) => {
                 return new Card(
@@ -105,7 +103,6 @@ class KanbanContextProvider extends React.Component {
         });
 
         if (!resCards) return;
-        console.log(newColumns);
 
         this.setState({
             currentProject: project,
@@ -257,12 +254,13 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
+    // Called after the user clicks "Cancel" in the edit colummns menu
     cancelColumnEdit() {
         this.setState({ unfinishedColumns: [] });
     }
 
     // Clear state.unfinishedColumns and call API to update the database
-    // Called after a the user clicks "Done" in the edit columns menu
+    // Called after the user clicks "Done" in the edit columns menu
     // This includes editing column titles, adding and deleting columns.
     async finishColumnEdit() {
         this.setState((prevState) => {
