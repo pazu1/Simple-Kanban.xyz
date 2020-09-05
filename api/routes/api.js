@@ -64,13 +64,14 @@ router.get("/", (req, res) => {
 });
 
 router.get("/projects", (req, res) => {
+    // FIXED
     useErrorHandler(async () => {
         const { user_id } = req.user;
         const allProjects = await pool.query(
             `
             SELECT pr.project_id, pr.project_name, kc.title, kc.k_column_id
                 FROM project pr INNER JOIN k_column kc
-                ON pr.user_id = 1 AND kc.user_id = 1;
+                ON pr.user_id = $1 AND kc.user_id = $1;
             `,
             [user_id]
         );
@@ -83,6 +84,7 @@ router.get("/projects", (req, res) => {
 
 // get all cards for a project
 router.get("/cards", (req, res) => {
+    // FIXED
     useErrorHandler(async () => {
         const { user_id } = req.user;
         const { project_id } = req.query;
