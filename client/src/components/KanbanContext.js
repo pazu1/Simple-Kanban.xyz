@@ -28,15 +28,15 @@ class Card {
         id, // unique key, -1 if has not been fetched from the API
         description, // text content
         index, // used to save the order of the cards to DB
-        column_id, // id of the column where the card belongs to
-        column_title, // name of the column where the card belongs to
+        columnId, // id of the column where the card belongs to
+        columnTitle, // name of the column where the card belongs to
         priority, // integer between like 1 - 3
         finished = true // false if card is still being created or edited
     ) {
         this.id = id;
         this.description = description;
         this.index = index;
-        this.column_id = column_id;
+        this.columnId = columnId;
         this.priority = priority;
         this.finished = finished;
     }
@@ -108,14 +108,16 @@ class KanbanContextProvider extends React.Component {
             });
         project.columns.forEach((col, i) => {
             cards.forEach((c) => {
-                if (c.column_id === col.id) {
-                    c.column_title = col.title;
+                if (c.columnId === col.id) {
+                    c.columnTitle = col.title;
                     project.columns[i].cards.push(c);
                 }
             });
         });
 
         if (!resCards) return;
+
+        console.log(project.columns);
 
         this.setState({
             currentProject: project,
@@ -314,23 +316,34 @@ class KanbanContextProvider extends React.Component {
 
     // Change card index and/or column
     async changeCardPosition(card, toColumn, toIndex = 0) {
-        const ca = toColumn.id; // TODO: by ID
-        const cb = card.column_id;
-        const callAPI = async () => {};
-        if (card.column_id === toColumn.id) {
+        //console.log(card, toColumn) // Somwhere down the function these become equal
+        const newColId = toColumn.id;
+        const oldColId = card.columnId;
+        const callAPI = async () => {
+            const caCards = this.state.columns.find(
+                (
+                    c // <---
+                ) => c.id === newColId
+            ).cards;
+            let cbCards = [];
+            if (oldColId != newColId) {
+                cbCards = this.state.columns.find((c) => c.id === oldColId)
+                    .cards;
+            }
+            this.API.updateColsOfCards(caCards, cbCards);
+        };
+        if (card.columnId === toColumn.id) {
             this.setState(
                 (prevState) => {
                     let copyColumns = prevState.columns;
                     let array = copyColumns.find(
                         (col) => col.id === toColumn.id
                     ).cards;
-                    console.log(array);
-                    console.log();
                     let fromIndex = array.findIndex((c) => c === card);
                     arraymove(array, fromIndex, toIndex);
 
-                    array.forEach((c, i) => {
-                        c.index = i;
+                    array.forEach((c, index) => {
+                        c.index = index;
                     });
 
                     return { columns: copyColumns };
@@ -346,22 +359,21 @@ class KanbanContextProvider extends React.Component {
                     (col) => col.id === toColumn.id
                 );
                 let oldColumnObj = copyColumns.find(
-                    (col) => col.id === card.column_id
+                    (col) => col.id === card.columnId
                 );
                 toColumnObj.cards.splice(toIndex, 0, card);
-                card.column_id = toColumn.id; //  MOVING CARD TO A DIFFERENT COLUMN
-                card.column_title = toColumn.title; // --||--
+                card.columnId = toColumn.id; //  MOVING CARD TO A DIFFERENT COLUMN
+                card.columnTitle = toColumn.title; // --||--
 
-                console.log(oldColumnObj);
                 var i = oldColumnObj.cards.indexOf(card);
 
                 oldColumnObj.cards.splice(i, 1);
 
-                toColumnObj.cards.forEach((c, i) => {
-                    c.index = i;
+                toColumnObj.cards.forEach((c, index) => {
+                    c.index = index;
                 });
-                oldColumnObj.cards.forEach((c, i) => {
-                    c.index = i;
+                oldColumnObj.cards.forEach((c, index) => {
+                    c.index = index;
                 });
 
                 return { columns: copyColumns };

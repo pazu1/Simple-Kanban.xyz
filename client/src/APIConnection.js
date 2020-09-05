@@ -62,11 +62,12 @@ class APIConnection {
         );
     }
 
-    async updateColumns(columnA, columnB) {
+    async updateColsOfCards(caCards, cbCards) {
+        // TODO: XXX this next
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ columnA: columnA, columnB: columnB }),
+            body: JSON.stringify({ caCards: caCards, cbCards: cbCards }),
         };
 
         return fetch(`${API_URL + CARDS}`, requestConf).then((res) =>

@@ -124,12 +124,13 @@ router.get("/cards/:id", (req, res) => {
 router.put("/cards/", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
-        const { columnA, columnB } = req.body;
-        const updateData = columnA.concat(columnB).map((c) => {
-            return { card_id: c.id, k_index: c.index, k_column: c.column };
+        const { caCards, cbCards } = req.body;
+        console.log(caCards, cbCards);
+        const updateData = caCards.concat(cbCards).map((c) => {
+            return { card_id: c.id, k_index: c.index, k_column_id: c.columnId };
         });
         const columnSet = new pgp.helpers.ColumnSet(
-            ["?card_id", "k_index", "k_column"],
+            ["?card_id", "k_index", "k_column_id"],
             { table: "card" }
         );
         const update =

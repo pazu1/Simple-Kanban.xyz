@@ -35,10 +35,7 @@ function KColumn({ column, cmActivate, editColumns }) {
             if (disableDrop) return;
             if (dropIndex === -1) return;
             let finalIndex = dropIndex;
-            if (
-                item.card.index < dropIndex &&
-                item.card.column_id === column.id
-            )
+            if (item.card.index < dropIndex && item.card.columnId === column.id)
                 finalIndex -= 1;
             changeCardPosition(item.card, column, finalIndex);
             setDropIndex(-1);
@@ -137,7 +134,7 @@ function KColumn({ column, cmActivate, editColumns }) {
                 {cardComponents}
             </div>
             {(unfinishedCard === null ||
-                unfinishedCard.column !== columnName) &&
+                unfinishedCard.columnTitle !== columnName) &&
             !editColumns &&
             !filter.length ? (
                 <button
