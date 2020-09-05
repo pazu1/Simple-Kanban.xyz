@@ -46,6 +46,7 @@ class KanbanContextProvider extends React.Component {
             columns: [],
             currentProject: null,
             unfinishedColumns: [], // Columns that are being edited, must be empty when editing is done
+            deletedColumns: [],
             unfinishedCTitle: null, // A column title being edited
             unfinishedCard: null, // A card that is being edited
             synchronizing: true,
@@ -229,6 +230,8 @@ class KanbanContextProvider extends React.Component {
     removeColumn(columnTitle) {
         this.setState((prevState) => {
             let copyColumns = [];
+            let copyDeleted = prevState.deletedColumns;
+            copyDeleted.push(columnTitle);
             if (prevState.unfinishedColumns.length)
                 copyColumns = [...prevState.unfinishedColumns];
             else copyColumns = [...prevState.columns];
@@ -236,6 +239,7 @@ class KanbanContextProvider extends React.Component {
             copyColumns.splice(i, 1);
             return {
                 unfinishedColumns: copyColumns,
+                deletedColumns: copyDeleted,
             };
         });
     }
@@ -247,7 +251,19 @@ class KanbanContextProvider extends React.Component {
                 copyColumns = [...prevState.unfinishedColumns];
             else copyColumns = [...prevState.columns];
             copyColumns.push(new Column(columnTitle, [], true));
-            console.log("ADDed", copyColumns);
+            return {
+                unfinishedColumns: copyColumns,
+            };
+        });
+    }
+
+    changeColumnTitle(oldTitle, newTitle) {
+        this.setState((prevState) => {
+            let copyColumns = [];
+            if (prevState.unfinishedColumns.length)
+                copyColumns = [...prevState.unfinishedColumns];
+            else copyColumns = [...prevState.columns];
+            copyColumns.find((c) => c.title === oldTitle).title = newTitle;
             return {
                 unfinishedColumns: copyColumns,
             };
@@ -256,7 +272,7 @@ class KanbanContextProvider extends React.Component {
 
     // Called after the user clicks "Cancel" in the edit colummns menu
     cancelColumnEdit() {
-        this.setState({ unfinishedColumns: [] });
+        this.setState({ unfinishedColumns: [], deletedColumns: [] });
     }
 
     // Clear state.unfinishedColumns and call API to update the database
@@ -269,15 +285,13 @@ class KanbanContextProvider extends React.Component {
                 // Avoid deleting all columns by some mistake
                 return;
 
-            const deletedCols = prevState.columns // Get deleted ones
-                .filter((c) => {
-                    return copyColUF.findIndex((x) => x.title === c.title) < 0;
-                })
-                .map((c) => c.title);
-
             let { project_id } = prevState.currentProject;
             let columnNames = copyColUF.map((c) => c.title);
-            this.API.updateColumnArray(columnNames, project_id, deletedCols);
+            this.API.updateColumnArray(
+                columnNames,
+                project_id,
+                prevState.deletedColumns
+            );
             // if res success
             return {
                 unfinishedColumns: [],

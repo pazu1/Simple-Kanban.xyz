@@ -7,7 +7,8 @@ import KanbanContext from "./KanbanContext";
 export const promptTypes = {
     ADDING_COLUMN: 0,
     DELETING_COLUMN: 1,
-    CREATING_PROJECT: 2,
+    EDITING_COLUMN: 2,
+    CREATING_PROJECT: 3,
 };
 
 function PromptModal(props) {
@@ -55,6 +56,32 @@ function PromptModal(props) {
                 <button
                     onClick={() => {
                         removeColumn(item);
+                        setModalOpen(false);
+                    }}
+                    className="mButton--green"
+                >
+                    Confirm
+                </button>
+            </>
+        ) : promptType === promptTypes.EDITING_COLUMN ? (
+            <>
+                <div style={{ paddingTop: 10 }}>Enter new column name:</div>
+                <textarea
+                    autoFocus
+                    className="cardTextArea"
+                    type="text"
+                    onChange={(e) => setEditName(e.target.value)}
+                    value={editName}
+                />
+                <button
+                    className="mButton--red"
+                    onClick={() => setModalOpen(false)}
+                >
+                    Cancel
+                </button>
+                <button
+                    onClick={() => {
+                        //changeColumnTitle(editName);
                         setModalOpen(false);
                     }}
                     className="mButton--green"

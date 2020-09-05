@@ -78,10 +78,20 @@ const ContextMenuCard = ({ card, hideContextMenu }) => {
 const ContextMenuColumn = ({ hideContextMenu, column, setModalActivate }) => {
     return (
         <>
-            <MenuItem>Edit column title</MenuItem>
             <MenuItem
                 onClick={() => {
-                    console.log(column);
+                    setModalActivate({
+                        opened: true,
+                        item: column,
+                        type: promptTypes.EDITING_COLUMN,
+                    });
+                    hideContextMenu();
+                }}
+            >
+                Edit column title
+            </MenuItem>
+            <MenuItem
+                onClick={() => {
                     setModalActivate({
                         opened: true,
                         item: column,
