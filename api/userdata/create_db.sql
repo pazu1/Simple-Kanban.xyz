@@ -15,6 +15,7 @@ CREATE TABLE k_column(
     k_column_id SERIAL PRIMARY KEY, 
     title VARCHAR(100) NOT NULL,
     user_id INT NOT NULL,
+    index INT, --visual order of columns on client side
     project_id INT NOT NULL,
     FOREIGN KEY (user_id)
     REFERENCES k_user(user_id) ON DELETE CASCADE,

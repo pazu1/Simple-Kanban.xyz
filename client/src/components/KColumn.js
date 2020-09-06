@@ -141,7 +141,7 @@ function KColumn({ column, cmActivate, editColumns }) {
                     className="addCardBtn"
                     onClick={() => {
                         cancelCardEdit();
-                        addCard(columnName, cardComponents.length);
+                        addCard(column.id, cardComponents.length);
                     }}
                 >
                     <span>Add card +</span>

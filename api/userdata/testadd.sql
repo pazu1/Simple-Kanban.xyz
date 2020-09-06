@@ -2,20 +2,20 @@
 INSERT INTO project (project_name, user_id)
 VALUES ('Test project', 1);
 
-INSERT INTO k_column (title, user_id, project_id)
-VALUES ('plan', 1, 1);
+INSERT INTO k_column (title, user_id, project_id, index)
+VALUES ('plan', 1, 1, 0);
 
-INSERT INTO k_column (title, user_id, project_id)
-VALUES ('todo', 1, 1);
+INSERT INTO k_column (title, user_id, project_id, index)
+VALUES ('todo', 1, 1, 1);
 
-INSERT INTO k_column (title, user_id, project_id)
-VALUES ('doing', 1, 1);
+INSERT INTO k_column (title, user_id, project_id, index)
+VALUES ('doing', 1, 1, 2);
 
-INSERT INTO k_column (title, user_id, project_id)
-VALUES ('testing', 1, 1);
+INSERT INTO k_column (title, user_id, project_id, index)
+VALUES ('testing', 1, 1, 3);
 
-INSERT INTO k_column (title, user_id, project_id)
-VALUES ('done', 1, 1);
+INSERT INTO k_column (title, user_id, project_id, index)
+VALUES ('done', 1, 1, 4);
 
 INSERT INTO card (description, k_index, project_id, k_priority, k_column_id)
 VALUES ('card 1', 0, 1, 1, 1);

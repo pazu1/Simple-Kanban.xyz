@@ -9,6 +9,12 @@ export function arraymove(arr, fromIndex, toIndex) {
     arr.splice(toIndex, 0, element);
 }
 
+export function updateindices(arr) {
+    arr.forEach((x, index) => {
+        x.index = index;
+    });
+}
+
 export const PriorityLevels = {
     1: "Low",
     2: "Medium",

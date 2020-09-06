@@ -35,14 +35,14 @@ class APIConnection {
     }
 
     async postCard(card, project_id) {
-        let { description, column, index, priority } = card;
+        let { description, columnId, index, priority } = card;
         const requestConf = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 description: description,
                 index: index,
-                column: column,
+                k_column_id: columnId,
                 priority: priority,
                 project_id: project_id,
             }),

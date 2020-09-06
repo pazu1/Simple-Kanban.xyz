@@ -69,7 +69,7 @@ router.get("/projects", (req, res) => {
         const { user_id } = req.user;
         const allProjects = await pool.query(
             `
-            SELECT pr.project_id, pr.project_name, kc.title, kc.k_column_id
+            SELECT pr.project_id, pr.project_name, kc.title, kc.k_column_id, kc.index
                 FROM project pr INNER JOIN k_column kc
                 ON pr.user_id = $1 AND kc.user_id = $1;
             `,
@@ -93,7 +93,7 @@ router.get("/cards", (req, res) => {
             SELECT cr.description, cr.card_id, cr.k_column_id , cr.k_index, cr.k_priority
                 FROM project pr 
                 INNER JOIN card cr ON cr.project_id = pr.project_id 
-                AND pr.user_id = $1 AND pr.project_id = $2
+                WHERE pr.user_id = $1 AND pr.project_id = $2
             `,
             [user_id, project_id]
         );
@@ -121,6 +121,7 @@ router.get("/cards/:id", (req, res) => {
 });
 
 // update two columns of cards or a single if only one provided
+// FIXED
 router.put("/cards/", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -178,8 +179,13 @@ router.put("/cards/:id", (req, res) => {
 router.post("/cards", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
-        const project_id = parseInt(req.body.project_id);
-        const { description, column, priority, index } = req.body;
+        const {
+            description,
+            k_column_id,
+            priority,
+            index,
+            project_id,
+        } = req.body;
 
         const canAddCard = await pool.query(
             // TODO: make this into one single query
@@ -195,11 +201,11 @@ router.post("/cards", (req, res) => {
         return pool
             .query(
                 `
-            INSERT INTO card (description, k_column, project_id, k_priority, k_index)
+            INSERT INTO card (description, k_column_id, project_id, k_priority, k_index)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING card_id;
         `,
-                [description, column, project_id, priority, index]
+                [description, k_column_id, project_id, priority, index]
             )
             .then((newCard) => {
                 return res.json(
@@ -235,7 +241,8 @@ router.delete("/cards/:id", (req, res) => {
 //  update array of column names
 router.put("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
-        const { user_id } = req.user;
+        const { user_id } = req.user; // TODO refactor this to update indices and or names
+        // new post and delete methods for other operations
         const { newColumns, project_id, deleted } = req.body;
 
         return pool
@@ -249,17 +256,6 @@ router.put("/projects/columns", (req, res) => {
             `,
                 [newColumns, project_id, user_id]
             )
-            .then((qRes) => {
-                console.log(qRes);
-                if (deleted.length && qRes.rowCount) {
-                    const authorizedProjectId = qRes.rows[0].project_id;
-                    pool.query(
-                        `DELETE FROM card WHERE k_column = ANY($1)
-                        AND project_id = $2`,
-                        [deleted, authorizedProjectId]
-                    );
-                }
-            })
             .then(() => {
                 return res.json(new Response(true, "Card updated."));
             });
