@@ -49,8 +49,8 @@ class KanbanContextProvider extends React.Component {
         this.state = {
             columns: [],
             currentProject: null,
-            unfinishedColumns: [], // Columns that are being edited, must be empty when editing is done
-            deletedColumns: [],
+            unfinishedColumns: [], // Columns that are being edited, must be empty when editing is done TODO: DELETE, not needed
+            deletedColumns: [], // <- this is good, use in delete request
             unfinishedCTitle: null, // A column title being edited
             unfinishedCard: null, // A card that is being edited
             synchronizing: true,
@@ -137,6 +137,7 @@ class KanbanContextProvider extends React.Component {
         console.log(columnId, "COLID");
         this.setState((prevState) => {
             let copyColumns = prevState.columns;
+            console.log(prevState.columns);
             let copyColumn = copyColumns.find((col) => col.id === columnId);
             const card = new Card(-1, "", index, columnId, 1, false);
             copyColumn.cards.push(card);
@@ -261,15 +262,21 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
-    addColumn(columnTitle) {
-        this.setState((prevState) => {
-            let copyColumns = [];
-            if (prevState.unfinishedColumns.length)
-                copyColumns = [...prevState.unfinishedColumns];
-            else copyColumns = [...prevState.columns];
-            copyColumns.push(new Column(columnTitle, [], true));
+    async addColumn(columnTitle) {
+        // Replace this with a version that just calls the API (post)
+        this.setState(async (prevState) => {
+            let copyColumns = prevState.columns;
+            let newIndex = prevState.columns.length;
+            const res = await this.API.postColumn(
+                columnTitle,
+                newIndex,
+                prevState.currentProject.projectId
+            );
+            if (!res.success) return;
+            const id = res.content.k_column_id;
+            copyColumns.push(new Column(id, columnTitle, [], true, newIndex));
             return {
-                unfinishedColumns: copyColumns,
+                columns: copyColumns,
             };
         });
     }

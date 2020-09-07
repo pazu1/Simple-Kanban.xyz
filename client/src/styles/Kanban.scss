@@ -228,3 +228,9 @@
         margin-bottom: -5px;
     }
 }
+
+.columnNew {
+    @extend .column;
+    cursor: pointer;
+    max-height: 100px;
+}

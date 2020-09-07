@@ -47,7 +47,6 @@ router.get("/jwt", async (req, res) => {
 });
 
 router.use(
-    // TODO: Mount error handler as middleware (?)
     jwt({
         secret: jwtSecret,
         getToken: (req) => req.cookies.token,
@@ -59,12 +58,18 @@ router.use(
 // API for accessing user data
 //
 
+// API Index
 router.get("/", (req, res) => {
     res.send("API is accessible");
 });
 
+//
+// PROJECTS
+//
+
+// Get all projects for a user
+// FIXED
 router.get("/projects", (req, res) => {
-    // FIXED
     useErrorHandler(async () => {
         const { user_id } = req.user;
         const allProjects = await pool.query(
@@ -82,9 +87,13 @@ router.get("/projects", (req, res) => {
     }, res)();
 });
 
+//
+// CARDS
+//
+
 // get all cards for a project
+// FIXED
 router.get("/cards", (req, res) => {
-    // FIXED
     useErrorHandler(async () => {
         const { user_id } = req.user;
         const { project_id } = req.query;
@@ -121,6 +130,7 @@ router.get("/cards/:id", (req, res) => {
 });
 
 // update two columns of cards or a single if only one provided
+// (card indices and card's k_column_id where that was changed)
 // FIXED
 router.put("/cards/", (req, res) => {
     useErrorHandler(async () => {
@@ -151,7 +161,8 @@ router.put("/cards/", (req, res) => {
     }, res)();
 });
 
-//  update a card
+//  update a card (priority or description)
+// FIXED
 router.put("/cards/:id", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -176,6 +187,7 @@ router.put("/cards/:id", (req, res) => {
 });
 
 // add a card
+// FIXED
 router.post("/cards", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -216,6 +228,7 @@ router.post("/cards", (req, res) => {
 });
 
 // delete a card
+// FIXED
 router.delete("/cards/:id", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -238,7 +251,30 @@ router.delete("/cards/:id", (req, res) => {
     }, res)();
 });
 
-//  update array of column names
+//
+// COLUMNS
+//
+
+// Add a new column
+router.post("/projects/columns", (req, res) => {
+    useErrorHandler(async () => {
+        const { user_id } = req.user;
+        const { title, index, project_id } = req.body;
+
+        const newColumn = await pool.query(
+            `
+                INSERT INTO k_column (title, user_id, index, project_id)
+                VALUES ($1, $2, $3, $4)
+                RETURNING k_column_id;
+            `,
+            [title, user_id, index, project_id]
+        );
+        return res.json(new Response(true, "Column added.", newColumn.rows[0]));
+    }, res)();
+});
+
+//  update column indices and names
+//  TODO
 router.put("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user; // TODO refactor this to update indices and or names
@@ -261,6 +297,9 @@ router.put("/projects/columns", (req, res) => {
             });
     }, res)();
 });
+
+// TODO: delete /projects/columns to delete a column
+// TODO: post /projects/columns to add a column
 
 var useErrorHandler = function (f, res) {
     return function () {

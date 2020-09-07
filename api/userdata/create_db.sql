@@ -1,3 +1,4 @@
+--TODO: rename columns to something more consistent
 CREATE TABLE k_user(
     user_id SERIAL PRIMARY KEY,
     user_name VARCHAR(30)

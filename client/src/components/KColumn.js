@@ -56,6 +56,7 @@ function KColumn({ column, cmActivate, editColumns }) {
     });
 
     let style = {};
+    console.log(column);
     let cards = column.cards;
     if (filter.length) {
         cards = cards.filter((card) =>

@@ -1,8 +1,8 @@
 const API_URL = "api/";
 const JWT = "jwt";
-const CARDS = "cards";
-const PROJECTS = "projects";
-const COLUMNS = "columns";
+const CARDS = "cards/";
+const PROJECTS = "projects/";
+const COLUMNS = "columns/";
 
 class APIConnection {
     constructor() {
@@ -85,9 +85,26 @@ class APIConnection {
             }),
         };
 
-        return fetch(`${API_URL + CARDS}/${id}`, requestConf).then((res) =>
+        return fetch(`${API_URL + CARDS + id}`, requestConf).then((res) =>
             res.json()
         );
+    }
+
+    async postColumn(title, index, projectId) {
+        const requestConf = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: title,
+                index: index,
+                project_id: projectId,
+            }),
+        };
+
+        return fetch(
+            `${API_URL + PROJECTS + COLUMNS}`,
+            requestConf
+        ).then((res) => res.json());
     }
 
     async updateColumnArray(newColumns, project_id, deleted = []) {
@@ -101,7 +118,7 @@ class APIConnection {
             }),
         };
         return fetch(
-            `${API_URL + PROJECTS + "/" + COLUMNS}`,
+            `${API_URL + PROJECTS + COLUMNS}`,
             requestConf
         ).then((res) => res.json());
     }

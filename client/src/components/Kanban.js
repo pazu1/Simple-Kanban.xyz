@@ -64,7 +64,7 @@ function Kanban(props) {
 
     let titlebarContent = (
         <div className="projectTitle">
-            {currentProject ? currentProject.project_name : null}
+            {currentProject ? currentProject.projectName : null}
             <button
                 ref={prTitleRef}
                 onClick={() => {
@@ -101,20 +101,6 @@ function Kanban(props) {
                     }}
                 >
                     Done
-                </button>
-                <button
-                    onClick={() => {
-                        setModalActivate({
-                            opened: true,
-                            item: null,
-                            type: promptTypes.ADDING_COLUMN,
-                        });
-                        //addColumn("added col") add this to modal prompt
-                    }}
-                    style={{ marginLeft: 60 }}
-                    className="kButton--green"
-                >
-                    + Add column
                 </button>
             </div>
         );
@@ -163,7 +149,23 @@ function Kanban(props) {
             </ContextMenu>
 
             {titlebarContent}
-            <div className="columnsContainer">{columnComponents}</div>
+            <div className="columnsContainer">
+                {columnComponents}
+                {!editColumns ? (
+                    <div
+                        onClick={() =>
+                            setModalActivate({
+                                opened: true,
+                                item: null,
+                                type: promptTypes.ADDING_COLUMN,
+                            })
+                        }
+                        className="columnNew"
+                    >
+                        + NEW COLUMN
+                    </div>
+                ) : null}
+            </div>
         </div>
     );
 }

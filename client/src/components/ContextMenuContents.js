@@ -13,7 +13,7 @@ const ContextMenuProject = ({ setEditColumns, hideContextMenu }) => {
                     hideContextMenu();
                 }}
             >
-                Edit columns
+                Move columns
             </MenuItem>
             <MenuSeparator />
             <MenuItem onClick={hideContextMenu}>Cancel</MenuItem>
