@@ -1,6 +1,11 @@
 import React, { createContext } from "react";
 
-import { arraymove, updateindices } from "../utils/const";
+import {
+    arraymove,
+    updateindices,
+    sortByIndex,
+    sortAndNormalizeIndices,
+} from "../utils/const";
 import APIConnection from "../APIConnection";
 const KanbanContext = createContext();
 
@@ -15,13 +20,15 @@ class Column {
         title,
         cards,
         finished = true, // false if column is still being created or edited
-        index
+        index,
+        markDone = false
     ) {
         this.id = id;
         this.title = title;
         this.cards = cards;
         this.finished = finished;
         this.index = index;
+        this.markDone = markDone;
     }
 }
 // This will correspond with the ones stored in the database
@@ -50,7 +57,6 @@ class KanbanContextProvider extends React.Component {
             columns: [],
             currentProject: null,
             unfinishedColumns: [], // Columns that are being edited, must be empty when editing is done TODO: DELETE, not needed
-            deletedColumns: [], // <- this is good, use in delete request
             unfinishedCTitle: null, // A column title being edited
             unfinishedCard: null, // A card that is being edited
             synchronizing: true,
@@ -67,14 +73,10 @@ class KanbanContextProvider extends React.Component {
         this.finishColumnEdit = this.finishColumnEdit.bind(this);
         this.removeColumn = this.removeColumn.bind(this);
         this.addColumn = this.addColumn.bind(this);
+        this.changeColumnTitle = this.changeColumnTitle.bind(this);
     }
 
     async componentDidMount() {
-        const sortByIndex = (ca, cb) => {
-            let a = ca.index;
-            let b = cb.index;
-            return a < b ? -1 : a > b ? 1 : 0;
-        };
         this.API = new APIConnection();
         await this.API.getToken();
 
@@ -97,6 +99,7 @@ class KanbanContextProvider extends React.Component {
                     pr.title,
                     [],
                     true,
+                    pr.index,
                     pr.k_column_id
                 );
             });
@@ -113,7 +116,8 @@ class KanbanContextProvider extends React.Component {
                 );
             })
             .sort(sortByIndex);
-        project.columns.sort(sortByIndex).forEach((col, i) => {
+        sortAndNormalizeIndices(project.columns);
+        project.columns.forEach((col, i) => {
             cards.forEach((c) => {
                 if (c.columnId === col.id) {
                     project.columns[i].cards.push(c);
@@ -161,7 +165,7 @@ class KanbanContextProvider extends React.Component {
 
     makeCardEditable(card) {
         card.finished = false;
-        this.setState({ unfinishedCard: card }); // TODO: return
+        this.setState({ unfinishedCard: card });
     }
 
     // Clear state.unfinishedCard and call API to add it to the database.
@@ -184,8 +188,6 @@ class KanbanContextProvider extends React.Component {
             return;
         }
 
-        // API call to add card and get id
-        console.log("PROJ", this.state.currentProject);
         let res = await this.API.postCard(
             editedCard,
             this.state.currentProject.projectId
@@ -217,7 +219,7 @@ class KanbanContextProvider extends React.Component {
             return;
         }
         copyColumns
-            .find((col) => col.title === cancelledCard.column)
+            .find((col) => col.id === cancelledCard.columnId)
             .cards.pop();
         this.setState({
             unfinishedCard: null,
@@ -225,71 +227,74 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
-    moveColumn(column, toRight) {
+    moveColumn(columnId, toRight) {
         this.setState((prevState) => {
             let copyColumns = [];
             if (prevState.unfinishedColumns.length)
                 copyColumns = [...prevState.unfinishedColumns];
             else copyColumns = [...prevState.columns];
-            let i = copyColumns.findIndex((c) => c.title === column);
-            let newi = i;
+
+            let movedCol = copyColumns.find((c) => c.id === columnId);
+            const oldi = movedCol.index;
+            let newi = oldi;
             if (toRight) newi += 1;
             else newi -= 1;
-            if (newi < 0 || newi > copyColumns.length + -1) return;
-            let save = copyColumns[i];
-            copyColumns[i] = copyColumns[newi];
-            copyColumns[newi] = save;
+            if (newi < 0 || newi > copyColumns.length + -1)
+                // out of bounds
+                return;
+            let replacedCol = copyColumns.find((c) => c.index === newi);
+
+            // Swap indices
+            replacedCol.index = oldi;
+            movedCol.index = newi;
+            console.log(replacedCol, movedCol);
+
             return {
                 unfinishedColumns: copyColumns,
             };
         });
     }
 
-    removeColumn(columnTitle) {
+    async removeColumn(columnId) {
+        const res = await this.API.deleteColumn(columnId);
+        if (!res.success) return;
         this.setState((prevState) => {
-            let copyColumns = [];
-            let copyDeleted = prevState.deletedColumns;
-            copyDeleted.push(columnTitle);
-            if (prevState.unfinishedColumns.length)
-                copyColumns = [...prevState.unfinishedColumns];
-            else copyColumns = [...prevState.columns];
-            let i = copyColumns.findIndex((c) => c.title === columnTitle);
+            let copyColumns = prevState.columns;
+            let i = copyColumns.findIndex((c) => c.id === columnId);
             copyColumns.splice(i, 1);
-            return {
-                unfinishedColumns: copyColumns,
-                deletedColumns: copyDeleted,
-            };
+            return { columns: copyColumns };
         });
     }
 
     async addColumn(columnTitle) {
-        // Replace this with a version that just calls the API (post)
-        this.setState(async (prevState) => {
-            let copyColumns = prevState.columns;
-            let newIndex = prevState.columns.length;
-            const res = await this.API.postColumn(
-                columnTitle,
-                newIndex,
-                prevState.currentProject.projectId
-            );
-            if (!res.success) return;
-            const id = res.content.k_column_id;
-            copyColumns.push(new Column(id, columnTitle, [], true, newIndex));
-            return {
-                columns: copyColumns,
-            };
+        let copyColumns = this.state.columns;
+        const newIndex = copyColumns.length;
+        const res = await this.API.postColumn(
+            columnTitle,
+            newIndex,
+            this.state.currentProject.projectId
+        );
+        if (!res.success) return;
+        const id = res.content.k_column_id;
+        copyColumns.push(new Column(id, columnTitle, [], true, newIndex));
+        this.setState({
+            columns: copyColumns,
         });
     }
 
-    changeColumnTitle(oldTitle, newTitle) {
+    async changeColumnTitle(columnId, newTitle) {
+        console.log(columnId, newTitle);
+        const res = await this.API.updateColumns(
+            [{ id: columnId, title: newTitle, index: null }],
+            this.state.currentProject.projectId
+        );
+        if (!res.success) return;
+
         this.setState((prevState) => {
-            let copyColumns = [];
-            if (prevState.unfinishedColumns.length)
-                copyColumns = [...prevState.unfinishedColumns];
-            else copyColumns = [...prevState.columns];
-            copyColumns.find((c) => c.title === oldTitle).title = newTitle;
+            let copyColumns = prevState.columns;
+            copyColumns.find((c) => c.id === columnId).title = newTitle;
             return {
-                unfinishedColumns: copyColumns,
+                columns: copyColumns,
             };
         });
     }
@@ -300,26 +305,24 @@ class KanbanContextProvider extends React.Component {
     }
 
     // Clear state.unfinishedColumns and call API to update the database
-    // Called after the user clicks "Done" in the edit columns menu
-    // This includes editing column titles, adding and deleting columns.
+    // this only handles changing column indices,
+    // TODO: remember to make this update the indices of all columns in the project
+    // TODO: refactor
     async finishColumnEdit() {
-        this.setState((prevState) => {
-            let copyColUF = prevState.unfinishedColumns;
-            if (!copyColUF.length)
-                // Avoid deleting all columns by some mistake
-                return;
+        let copyColFinished = this.state.unfinishedColumns;
+        const res = await this.API.updateColumns(
+            copyColFinished,
+            this.state.projectId
+        );
+        console.log(res);
 
-            let { project_id } = prevState.currentProject;
-            let columnNames = copyColUF.map((c) => c.title);
-            this.API.updateColumnArray(
-                columnNames,
-                project_id,
-                prevState.deletedColumns
-            );
+        this.setState((prevState) => {
+            // this.API.updateColumns
+            // ^ add all columns in the project to this array
             // if res success
             return {
                 unfinishedColumns: [],
-                columns: copyColUF,
+                columns: copyColFinished,
             };
         });
     }
@@ -418,6 +421,7 @@ class KanbanContextProvider extends React.Component {
             finishColumnEdit,
             removeColumn,
             addColumn,
+            changeColumnTitle,
         } = this;
 
         return (
@@ -440,6 +444,7 @@ class KanbanContextProvider extends React.Component {
                     finishColumnEdit,
                     removeColumn,
                     addColumn,
+                    changeColumnTitle,
                 }}
             >
                 {this.props.children}

@@ -56,7 +56,6 @@ function KColumn({ column, cmActivate, editColumns }) {
     });
 
     let style = {};
-    console.log(column);
     let cards = column.cards;
     if (filter.length) {
         cards = cards.filter((card) =>
@@ -85,27 +84,29 @@ function KColumn({ column, cmActivate, editColumns }) {
         );
     });
 
-    const columnTitle = <div>{columnName.toUpperCase()}</div>;
-    const editablecolumnTitle = (
-        <div className={"editableColumn"}>
-            <MdArrowBack
-                onClick={() => moveColumn(columnName, false)}
-                className="columnIcon--back"
-            />
+    const columnTitle = (
+        <div>
             {columnName.toUpperCase()}
             <button
                 style={{ background: "transparent", padding: 0 }}
                 ref={cmRefColumn}
             >
                 <MdMore
-                    onClick={() =>
-                        cmActivate(cmRefColumn.current, columnName, 3)
-                    }
+                    onClick={() => cmActivate(cmRefColumn.current, column, 3)}
                     className="columnIcon--more"
                 />
             </button>
+        </div>
+    );
+    const editablecolumnTitle = (
+        <div className={"editableColumn"}>
+            <MdArrowBack
+                onClick={() => moveColumn(column.id, false)}
+                className="columnIcon--back"
+            />
+            {columnName.toUpperCase()}
             <MdArrowForward
-                onClick={() => moveColumn(columnName, true)}
+                onClick={() => moveColumn(column.id, true)}
                 className="columnIcon--forward"
             />
         </div>

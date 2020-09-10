@@ -63,7 +63,6 @@ class APIConnection {
     }
 
     async updateColsOfCards(caCards, cbCards) {
-        // TODO: XXX this next
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -107,14 +106,30 @@ class APIConnection {
         ).then((res) => res.json());
     }
 
-    async updateColumnArray(newColumns, project_id, deleted = []) {
+    async deleteColumn(columnId) {
+        const requestConf = {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                column_id: columnId,
+            }),
+        };
+
+        return fetch(
+            `${API_URL + PROJECTS + COLUMNS}`,
+            requestConf
+        ).then((res) => res.json());
+    }
+
+    // Updates names or indices, updatedColumns contain { id, title, index }
+    // TODO: make sure if one of these is null it stays unmodified
+    async updateColumns(updatedColumns, project_id) {
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                newColumns: newColumns,
+                columns: updatedColumns,
                 project_id: project_id,
-                deleted: deleted, // Each card in these columns will be deleted
             }),
         };
         return fetch(

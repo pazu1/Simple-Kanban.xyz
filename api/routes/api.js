@@ -256,6 +256,7 @@ router.delete("/cards/:id", (req, res) => {
 //
 
 // Add a new column
+// TODO: check that user is authorized to add column to project
 router.post("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -279,22 +280,56 @@ router.put("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user; // TODO refactor this to update indices and or names
         // new post and delete methods for other operations
-        const { newColumns, project_id, deleted } = req.body;
+        const { columns, project_id } = req.body;
+        console.log(columns);
+        const updateData = columns.map((c) => {
+            return { index: c.index, title: c.title, k_column_id: c.id };
+        });
+        let valuesToUpdate = ["?k_column_id", "index", "title"];
 
-        return pool
-            .query(
-                `
-                UPDATE project AS p
-                SET k_columns = $1
-                WHERE p.project_id = $2
-                AND p.user_id = $3
-                RETURNING p.project_id;
+        if (updateData[0].index === null)
+            valuesToUpdate = ["?k_column_id", "title"];
+        console.log(valuesToUpdate);
+        console.log(updateData);
+
+        const columnSet = new pgp.helpers.ColumnSet(valuesToUpdate, {
+            table: "k_column",
+        });
+        const update =
+            pgp.helpers.update(updateData, columnSet) +
+            `
+                WHERE v.k_column_id = t.k_column_id
+                AND t.project_id IN (
+                    SELECT project_id FROM project
+                    WHERE user_id = $1
+                )
+                RETURNING v.k_column_id
+                `;
+        const updatedCols = await pool.query(update, [user_id]);
+        if (!updatedCols.rows.length)
+            throw new Error("Could not update columns.");
+        return res.json(new Response(true, "Columns updated."));
+    }, res)();
+});
+
+// delete a column
+router.delete("/projects/columns", (req, res) => {
+    useErrorHandler(async () => {
+        const { user_id } = req.user;
+        const { column_id } = req.body;
+        const deletedCol = await pool.query(
+            `
+            DELETE FROM k_column kc
+            WHERE kc.k_column_id = $1 AND kc.user_id = $2
+            RETURNING kc.k_column_id
             `,
-                [newColumns, project_id, user_id]
-            )
-            .then(() => {
-                return res.json(new Response(true, "Card updated."));
-            });
+            [column_id, user_id]
+        );
+        if (!deletedCol.rows.length) {
+            throw new Error("Could not delete column.");
+        }
+
+        return res.json(new Response(true, "Column was deleted."));
     }, res)();
 });
 

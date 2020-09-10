@@ -3,6 +3,7 @@ import Modal from "react-modal";
 import MdMore from "react-ionicons/lib/MdMore";
 
 import "../styles/Kanban.scss";
+import { sortByIndex } from "../utils/const";
 import KColumn from "./KColumn";
 import KanbanContext from "./KanbanContext";
 import PromptModal, { promptTypes } from "./PromptModal";
@@ -107,7 +108,7 @@ function Kanban(props) {
     let columnObjects = null;
     if (unfinishedColumns.length) columnObjects = unfinishedColumns;
     else columnObjects = columns;
-    let columnComponents = columnObjects.map((col) => {
+    let columnComponents = columnObjects.sort(sortByIndex).map((col) => {
         return (
             <KColumn
                 editColumns={editColumns}
