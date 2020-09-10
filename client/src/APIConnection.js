@@ -1,8 +1,8 @@
 const API_URL = "api/";
 const JWT = "jwt";
-const CARDS = "cards";
-const PROJECTS = "projects";
-const COLUMNS = "columns";
+const CARDS = "cards/";
+const PROJECTS = "projects/";
+const COLUMNS = "columns/";
 
 class APIConnection {
     constructor() {
@@ -35,14 +35,14 @@ class APIConnection {
     }
 
     async postCard(card, project_id) {
-        let { description, column, index, priority } = card;
+        let { description, columnId, index, priority } = card;
         const requestConf = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 description: description,
                 index: index,
-                column: column,
+                k_column_id: columnId,
                 priority: priority,
                 project_id: project_id,
             }),
@@ -62,11 +62,11 @@ class APIConnection {
         );
     }
 
-    async updateColumns(columnA, columnB) {
+    async updateColsOfCards(caCards, cbCards) {
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ columnA: columnA, columnB: columnB }),
+            body: JSON.stringify({ caCards: caCards, cbCards: cbCards }),
         };
 
         return fetch(`${API_URL + CARDS}`, requestConf).then((res) =>
@@ -84,23 +84,56 @@ class APIConnection {
             }),
         };
 
-        return fetch(`${API_URL + CARDS}/${id}`, requestConf).then((res) =>
+        return fetch(`${API_URL + CARDS + id}`, requestConf).then((res) =>
             res.json()
         );
     }
 
-    async updateColumnArray(newColumns, project_id, deleted = []) {
+    async postColumn(title, index, projectId) {
+        const requestConf = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: title,
+                index: index,
+                project_id: projectId,
+            }),
+        };
+
+        return fetch(
+            `${API_URL + PROJECTS + COLUMNS}`,
+            requestConf
+        ).then((res) => res.json());
+    }
+
+    async deleteColumn(columnId) {
+        const requestConf = {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                column_id: columnId,
+            }),
+        };
+
+        return fetch(
+            `${API_URL + PROJECTS + COLUMNS}`,
+            requestConf
+        ).then((res) => res.json());
+    }
+
+    // Updates names or indices, updatedColumns contain { id, title, index }
+    // TODO: make sure if one of these is null it stays unmodified
+    async updateColumns(updatedColumns, project_id) {
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                newColumns: newColumns,
+                columns: updatedColumns,
                 project_id: project_id,
-                deleted: deleted, // Each card in these columns will be deleted
             }),
         };
         return fetch(
-            `${API_URL + PROJECTS + "/" + COLUMNS}`,
+            `${API_URL + PROJECTS + COLUMNS}`,
             requestConf
         ).then((res) => res.json());
     }

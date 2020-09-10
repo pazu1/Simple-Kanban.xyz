@@ -3,6 +3,7 @@ import Modal from "react-modal";
 import MdMore from "react-ionicons/lib/MdMore";
 
 import "../styles/Kanban.scss";
+import { sortByIndex } from "../utils/const";
 import KColumn from "./KColumn";
 import KanbanContext from "./KanbanContext";
 import PromptModal, { promptTypes } from "./PromptModal";
@@ -64,7 +65,7 @@ function Kanban(props) {
 
     let titlebarContent = (
         <div className="projectTitle">
-            {currentProject ? currentProject.project_name : null}
+            {currentProject ? currentProject.projectName : null}
             <button
                 ref={prTitleRef}
                 onClick={() => {
@@ -102,26 +103,12 @@ function Kanban(props) {
                 >
                     Done
                 </button>
-                <button
-                    onClick={() => {
-                        setModalActivate({
-                            opened: true,
-                            item: null,
-                            type: promptTypes.ADDING_COLUMN,
-                        });
-                        //addColumn("added col") add this to modal prompt
-                    }}
-                    style={{ marginLeft: 60 }}
-                    className="kButton--green"
-                >
-                    + Add column
-                </button>
             </div>
         );
     let columnObjects = null;
     if (unfinishedColumns.length) columnObjects = unfinishedColumns;
     else columnObjects = columns;
-    let columnComponents = columnObjects.map((col) => {
+    let columnComponents = columnObjects.sort(sortByIndex).map((col) => {
         return (
             <KColumn
                 editColumns={editColumns}
@@ -163,7 +150,23 @@ function Kanban(props) {
             </ContextMenu>
 
             {titlebarContent}
-            <div className="columnsContainer">{columnComponents}</div>
+            <div className="columnsContainer">
+                {columnComponents}
+                {!editColumns ? (
+                    <div
+                        onClick={() =>
+                            setModalActivate({
+                                opened: true,
+                                item: null,
+                                type: promptTypes.ADDING_COLUMN,
+                            })
+                        }
+                        className="columnNew"
+                    >
+                        + NEW COLUMN
+                    </div>
+                ) : null}
+            </div>
         </div>
     );
 }

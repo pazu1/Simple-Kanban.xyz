@@ -29,15 +29,15 @@ function KColumn({ column, cmActivate, editColumns }) {
         drop: (item) => {
             if (cardComponents.length === 0) {
                 // No cards in column
-                changeCardPosition(item.card, columnName, 0);
+                changeCardPosition(item.card, column, 0);
                 return;
             }
             if (disableDrop) return;
             if (dropIndex === -1) return;
             let finalIndex = dropIndex;
-            if (item.card.index < dropIndex && item.card.column === columnName)
+            if (item.card.index < dropIndex && item.card.columnId === column.id)
                 finalIndex -= 1;
-            changeCardPosition(item.card, columnName, finalIndex);
+            changeCardPosition(item.card, column, finalIndex);
             setDropIndex(-1);
         },
         collect: (monitor) => ({
@@ -48,7 +48,7 @@ function KColumn({ column, cmActivate, editColumns }) {
     const [{ isDragging }, dragColumn] = useDrag({
         item: {
             type: ItemTypes.COLUMN,
-            column: columnName,
+            column: column,
         },
         collect: (monitor) => ({
             isDragging: monitor.isDragging(),
@@ -84,27 +84,29 @@ function KColumn({ column, cmActivate, editColumns }) {
         );
     });
 
-    const columnTitle = <div>{columnName.toUpperCase()}</div>;
-    const editablecolumnTitle = (
-        <div className={"editableColumn"}>
-            <MdArrowBack
-                onClick={() => moveColumn(columnName, false)}
-                className="columnIcon--back"
-            />
+    const columnTitle = (
+        <div>
             {columnName.toUpperCase()}
             <button
                 style={{ background: "transparent", padding: 0 }}
                 ref={cmRefColumn}
             >
                 <MdMore
-                    onClick={() =>
-                        cmActivate(cmRefColumn.current, columnName, 3)
-                    }
+                    onClick={() => cmActivate(cmRefColumn.current, column, 3)}
                     className="columnIcon--more"
                 />
             </button>
+        </div>
+    );
+    const editablecolumnTitle = (
+        <div className={"editableColumn"}>
+            <MdArrowBack
+                onClick={() => moveColumn(column.id, false)}
+                className="columnIcon--back"
+            />
+            {columnName.toUpperCase()}
             <MdArrowForward
-                onClick={() => moveColumn(columnName, true)}
+                onClick={() => moveColumn(column.id, true)}
                 className="columnIcon--forward"
             />
         </div>
@@ -134,14 +136,14 @@ function KColumn({ column, cmActivate, editColumns }) {
                 {cardComponents}
             </div>
             {(unfinishedCard === null ||
-                unfinishedCard.column !== columnName) &&
+                unfinishedCard.columnTitle !== columnName) &&
             !editColumns &&
             !filter.length ? (
                 <button
                     className="addCardBtn"
                     onClick={() => {
                         cancelCardEdit();
-                        addCard(columnName, cardComponents.length);
+                        addCard(column.id, cardComponents.length);
                     }}
                 >
                     <span>Add card +</span>

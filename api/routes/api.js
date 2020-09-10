@@ -8,7 +8,6 @@ const db = require("../userdata/db");
 const pool = db.pool;
 
 // TODO: test API for errors, make sure all cases are covered
-//       psql triggers
 
 //
 // Authorization
@@ -47,7 +46,6 @@ router.get("/jwt", async (req, res) => {
 });
 
 router.use(
-    // TODO: Mount error handler as middleware (?)
     jwt({
         secret: jwtSecret,
         getToken: (req) => req.cookies.token,
@@ -59,28 +57,37 @@ router.use(
 // API for accessing user data
 //
 
+// API Index
 router.get("/", (req, res) => {
     res.send("API is accessible");
 });
 
+//
+// PROJECTS
+//
+
+// Get all projects for a user
 router.get("/projects", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
         const allProjects = await pool.query(
             `
-            SELECT project_id, project_name, k_columns
-                FROM project pr 
-                WHERE user_id = $1
+            SELECT pr.project_id, pr.project_name, kc.title, kc.k_column_id, kc.index
+                FROM project pr INNER JOIN k_column kc
+                ON pr.user_id = $1 AND kc.user_id = $1;
             `,
             [user_id]
         );
         if (!allProjects.rows.length) throw new Error("No projects found.");
-
         return res.json(
             new Response(true, "Projects retrieved.", allProjects.rows)
         );
     }, res)();
 });
+
+//
+// CARDS
+//
 
 // get all cards for a project
 router.get("/cards", (req, res) => {
@@ -89,10 +96,10 @@ router.get("/cards", (req, res) => {
         const { project_id } = req.query;
         const allCards = await pool.query(
             `
-            SELECT cr.description, cr.card_id, cr.k_column , cr.k_index, cr.k_priority
+            SELECT cr.description, cr.card_id, cr.k_column_id , cr.k_index, cr.k_priority
                 FROM project pr 
                 INNER JOIN card cr ON cr.project_id = pr.project_id 
-                AND pr.user_id = $1 AND pr.project_id = $2
+                WHERE pr.user_id = $1 AND pr.project_id = $2
             `,
             [user_id, project_id]
         );
@@ -108,7 +115,7 @@ router.get("/cards/:id", (req, res) => {
         const { id } = req.params;
         const card = await pool.query(
             `
-                SELECT cr.description, cr.card_id, cr.k_column
+                SELECT cr.description, cr.card_id, cr.k_column_id
                     FROM project pr 
                     INNER JOIN card cr ON cr.project_id = pr.project_id 
                     WHERE pr.user_id = $1 AND cr.card_id = $2`,
@@ -120,15 +127,17 @@ router.get("/cards/:id", (req, res) => {
 });
 
 // update two columns of cards or a single if only one provided
+// (card indices and card's k_column_id where that was changed)
 router.put("/cards/", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
-        const { columnA, columnB } = req.body;
-        const updateData = columnA.concat(columnB).map((c) => {
-            return { card_id: c.id, k_index: c.index, k_column: c.column };
+        const { caCards, cbCards } = req.body;
+        console.log(caCards, cbCards);
+        const updateData = caCards.concat(cbCards).map((c) => {
+            return { card_id: c.id, k_index: c.index, k_column_id: c.columnId };
         });
         const columnSet = new pgp.helpers.ColumnSet(
-            ["?card_id", "k_index", "k_column"],
+            ["?card_id", "k_index", "k_column_id"],
             { table: "card" }
         );
         const update =
@@ -148,7 +157,7 @@ router.put("/cards/", (req, res) => {
     }, res)();
 });
 
-//  update a card
+//  update a card (priority or description)
 router.put("/cards/:id", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -176,8 +185,13 @@ router.put("/cards/:id", (req, res) => {
 router.post("/cards", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
-        const project_id = parseInt(req.body.project_id);
-        const { description, column, priority, index } = req.body;
+        const {
+            description,
+            k_column_id,
+            priority,
+            index,
+            project_id,
+        } = req.body;
 
         const canAddCard = await pool.query(
             // TODO: make this into one single query
@@ -193,11 +207,11 @@ router.post("/cards", (req, res) => {
         return pool
             .query(
                 `
-            INSERT INTO card (description, k_column, project_id, k_priority, k_index)
+            INSERT INTO card (description, k_column_id, project_id, k_priority, k_index)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING card_id;
         `,
-                [description, column, project_id, priority, index]
+                [description, k_column_id, project_id, priority, index]
             )
             .then((newCard) => {
                 return res.json(
@@ -230,37 +244,82 @@ router.delete("/cards/:id", (req, res) => {
     }, res)();
 });
 
-//  update array of column names
-router.put("/projects/columns", (req, res) => {
+//
+// COLUMNS
+//
+
+// Add a new column
+// TODO: check that user is authorized to add column to project
+router.post("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
-        const { newColumns, project_id, deleted } = req.body;
+        const { title, index, project_id } = req.body;
 
-        return pool
-            .query(
-                `
-                UPDATE project AS p
-                SET k_columns = $1
-                WHERE p.project_id = $2
-                AND p.user_id = $3
-                RETURNING p.project_id;
+        const newColumn = await pool.query(
+            `
+                INSERT INTO k_column (title, user_id, index, project_id)
+                VALUES ($1, $2, $3, $4)
+                RETURNING k_column_id;
             `,
-                [newColumns, project_id, user_id]
-            )
-            .then((qRes) => {
-                console.log(qRes);
-                if (deleted.length && qRes.rowCount) {
-                    const authorizedProjectId = qRes.rows[0].project_id;
-                    pool.query(
-                        `DELETE FROM card WHERE k_column = ANY($1)
-                        AND project_id = $2`,
-                        [deleted, authorizedProjectId]
-                    );
-                }
-            })
-            .then(() => {
-                return res.json(new Response(true, "Card updated."));
-            });
+            [title, user_id, index, project_id]
+        );
+        return res.json(new Response(true, "Column added.", newColumn.rows[0]));
+    }, res)();
+});
+
+//  update column indices and names
+//  TODO
+router.put("/projects/columns", (req, res) => {
+    useErrorHandler(async () => {
+        const { user_id } = req.user; // TODO refactor this to update indices and or names
+        // new post and delete methods for other operations
+        const { columns, project_id } = req.body;
+        console.log(columns);
+        const updateData = columns.map((c) => {
+            return { index: c.index, title: c.title, k_column_id: c.id };
+        });
+        let valuesToUpdate = ["?k_column_id", "index", "title"];
+        if (updateData[0].index === null)
+            valuesToUpdate = ["?k_column_id", "title"];
+
+        const columnSet = new pgp.helpers.ColumnSet(valuesToUpdate, {
+            table: "k_column",
+        });
+        const update =
+            pgp.helpers.update(updateData, columnSet) +
+            `
+                WHERE v.k_column_id = t.k_column_id
+                AND t.project_id IN (
+                    SELECT project_id FROM project
+                    WHERE user_id = $1
+                )
+                RETURNING v.k_column_id
+                `;
+        const updatedCols = await pool.query(update, [user_id]);
+        if (!updatedCols.rows.length)
+            throw new Error("Could not update columns.");
+        return res.json(new Response(true, "Columns updated."));
+    }, res)();
+});
+
+// delete a column
+router.delete("/projects/columns", (req, res) => {
+    useErrorHandler(async () => {
+        const { user_id } = req.user;
+        const { column_id } = req.body;
+        const deletedCol = await pool.query(
+            `
+            DELETE FROM k_column kc
+            WHERE kc.k_column_id = $1 AND kc.user_id = $2
+            RETURNING kc.k_column_id
+            `,
+            [column_id, user_id]
+        );
+        if (!deletedCol.rows.length) {
+            throw new Error("Could not delete column.");
+        }
+
+        return res.json(new Response(true, "Column was deleted."));
     }, res)();
 });
 

@@ -13,8 +13,10 @@ export const promptTypes = {
 
 function PromptModal(props) {
     const { modalOpen, setModalOpen, promptType, item } = props;
-    const [editName, setEditName] = useState("");
-    const { addColumn, removeColumn } = useContext(KanbanContext);
+    const [editedName, setEditedName] = useState("");
+    const { addColumn, removeColumn, changeColumnTitle } = useContext(
+        KanbanContext
+    );
     const content =
         promptType === promptTypes.ADDING_COLUMN ? ( // TODO: validate user input
             <>
@@ -23,9 +25,20 @@ function PromptModal(props) {
                     autoFocus
                     className="cardTextArea"
                     type="text"
-                    onChange={(e) => setEditName(e.target.value)}
-                    value={editName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    value={editedName}
                 />
+                <div>
+                    <input
+                        type="checkbox"
+                        id="doneCol"
+                        name="doneCol"
+                        value="checked"
+                    />
+                    <label for="doneCol">
+                        Mark cards in this column as done
+                    </label>
+                </div>
                 <button
                     className="mButton--red"
                     onClick={() => setModalOpen(false)}
@@ -34,7 +47,7 @@ function PromptModal(props) {
                 </button>
                 <button
                     onClick={() => {
-                        addColumn(editName);
+                        addColumn(editedName);
                         setModalOpen(false);
                     }}
                     className="mButton--green"
@@ -45,7 +58,8 @@ function PromptModal(props) {
         ) : promptType === promptTypes.DELETING_COLUMN ? (
             <>
                 <div style={{ paddingTop: 10 }}>
-                    Are you sure you want to delete column {item}?
+                    Are you sure you want to delete column <b>{item.title}</b>?
+                    All cards inside the column will also be deleted.
                 </div>
                 <button
                     className="mButton--red"
@@ -55,7 +69,7 @@ function PromptModal(props) {
                 </button>
                 <button
                     onClick={() => {
-                        removeColumn(item);
+                        removeColumn(item.id);
                         setModalOpen(false);
                     }}
                     className="mButton--green"
@@ -70,8 +84,8 @@ function PromptModal(props) {
                     autoFocus
                     className="cardTextArea"
                     type="text"
-                    onChange={(e) => setEditName(e.target.value)}
-                    value={editName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    value={editedName}
                 />
                 <button
                     className="mButton--red"
@@ -81,7 +95,7 @@ function PromptModal(props) {
                 </button>
                 <button
                     onClick={() => {
-                        //changeColumnTitle(editName);
+                        changeColumnTitle(item.id, editedName);
                         setModalOpen(false);
                     }}
                     className="mButton--green"
@@ -92,7 +106,7 @@ function PromptModal(props) {
         ) : null;
 
     useEffect(() => {
-        setEditName("");
+        setEditedName("");
     }, [promptType, modalOpen]);
 
     return (
