@@ -8,7 +8,6 @@ const db = require("../userdata/db");
 const pool = db.pool;
 
 // TODO: test API for errors, make sure all cases are covered
-//       psql triggers
 
 //
 // Authorization
@@ -68,7 +67,6 @@ router.get("/", (req, res) => {
 //
 
 // Get all projects for a user
-// FIXED
 router.get("/projects", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -92,7 +90,6 @@ router.get("/projects", (req, res) => {
 //
 
 // get all cards for a project
-// FIXED
 router.get("/cards", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -131,7 +128,6 @@ router.get("/cards/:id", (req, res) => {
 
 // update two columns of cards or a single if only one provided
 // (card indices and card's k_column_id where that was changed)
-// FIXED
 router.put("/cards/", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -162,7 +158,6 @@ router.put("/cards/", (req, res) => {
 });
 
 //  update a card (priority or description)
-// FIXED
 router.put("/cards/:id", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -187,7 +182,6 @@ router.put("/cards/:id", (req, res) => {
 });
 
 // add a card
-// FIXED
 router.post("/cards", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -228,7 +222,6 @@ router.post("/cards", (req, res) => {
 });
 
 // delete a card
-// FIXED
 router.delete("/cards/:id", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
@@ -286,11 +279,8 @@ router.put("/projects/columns", (req, res) => {
             return { index: c.index, title: c.title, k_column_id: c.id };
         });
         let valuesToUpdate = ["?k_column_id", "index", "title"];
-
         if (updateData[0].index === null)
             valuesToUpdate = ["?k_column_id", "title"];
-        console.log(valuesToUpdate);
-        console.log(updateData);
 
         const columnSet = new pgp.helpers.ColumnSet(valuesToUpdate, {
             table: "k_column",
@@ -332,9 +322,6 @@ router.delete("/projects/columns", (req, res) => {
         return res.json(new Response(true, "Column was deleted."));
     }, res)();
 });
-
-// TODO: delete /projects/columns to delete a column
-// TODO: post /projects/columns to add a column
 
 var useErrorHandler = function (f, res) {
     return function () {

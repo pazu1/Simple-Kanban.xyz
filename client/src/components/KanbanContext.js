@@ -2,7 +2,7 @@ import React, { createContext } from "react";
 
 import {
     arraymove,
-    updateindices,
+    normalizeIndices,
     sortByIndex,
     sortAndNormalizeIndices,
 } from "../utils/const";
@@ -57,7 +57,6 @@ class KanbanContextProvider extends React.Component {
             columns: [],
             currentProject: null,
             unfinishedColumns: [], // Columns that are being edited, must be empty when editing is done TODO: DELETE, not needed
-            unfinishedCTitle: null, // A column title being edited
             unfinishedCard: null, // A card that is being edited
             synchronizing: true,
         };
@@ -157,7 +156,7 @@ class KanbanContextProvider extends React.Component {
             .cards;
         cardColumn.splice(cardColumn.indexOf(card), 1);
         if (cardColumn.length) {
-            updateindices(cardColumn);
+            normalizeIndices(cardColumn);
             let res = await this.API.updateColsOfCards(cardColumn, []); // Update the indices
         }
         this.setState({ columns: copyColumns }); // TODO: return
@@ -262,6 +261,7 @@ class KanbanContextProvider extends React.Component {
             let copyColumns = prevState.columns;
             let i = copyColumns.findIndex((c) => c.id === columnId);
             copyColumns.splice(i, 1);
+            normalizeIndices(copyColumns);
             return { columns: copyColumns };
         });
     }
@@ -283,7 +283,6 @@ class KanbanContextProvider extends React.Component {
     }
 
     async changeColumnTitle(columnId, newTitle) {
-        console.log(columnId, newTitle);
         const res = await this.API.updateColumns(
             [{ id: columnId, title: newTitle, index: null }],
             this.state.currentProject.projectId
@@ -301,7 +300,7 @@ class KanbanContextProvider extends React.Component {
 
     // Called after the user clicks "Cancel" in the edit colummns menu
     cancelColumnEdit() {
-        this.setState({ unfinishedColumns: [], deletedColumns: [] });
+        this.setState({ unfinishedColumns: [] });
     }
 
     // Clear state.unfinishedColumns and call API to update the database
@@ -314,7 +313,6 @@ class KanbanContextProvider extends React.Component {
             copyColFinished,
             this.state.projectId
         );
-        console.log(res);
 
         this.setState((prevState) => {
             // this.API.updateColumns
@@ -352,7 +350,7 @@ class KanbanContextProvider extends React.Component {
                     let fromIndex = array.findIndex((c) => c === card);
                     arraymove(array, fromIndex, toIndex);
 
-                    updateindices(array);
+                    normalizeIndices(array);
 
                     return { columns: copyColumns };
                 },
@@ -377,8 +375,8 @@ class KanbanContextProvider extends React.Component {
 
                 oldColumnObj.cards.splice(i, 1);
 
-                updateindices(toColumnObj.cards);
-                updateindices(oldColumnObj.cards);
+                normalizeIndices(toColumnObj.cards);
+                normalizeIndices(oldColumnObj.cards);
 
                 return { columns: copyColumns };
             },
