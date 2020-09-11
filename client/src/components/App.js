@@ -1,27 +1,25 @@
 import React from "react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import "./App.css";
-import Kanban from "./Kanban";
-import SideBar from "./SideBar";
-import TopBar from "./TopBar";
+import "../styles/Index.scss";
+import Index from "./Index";
+import BoardView from "./BoardView";
 import { KanbanContextProvider } from "./KanbanContext";
-import { FilterContextProvider } from "./FilterContext";
-
-function App(props) {
+function App() {
     return (
-        <div>
-            <DndProvider backend={HTML5Backend}>
-                <KanbanContextProvider>
-                    <SideBar />
-                    <FilterContextProvider>
-                        <TopBar />
-                        <Kanban />
-                    </FilterContextProvider>
-                </KanbanContextProvider>
-            </DndProvider>
-        </div>
+        <KanbanContextProvider>
+            <Router>
+                <Switch>
+                    <Route path="/board">
+                        <BoardView />
+                    </Route>
+                    <Route path="/">
+                        <Index />
+                    </Route>
+                </Switch>
+            </Router>
+        </KanbanContextProvider>
     );
 }
 
