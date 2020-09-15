@@ -15,14 +15,7 @@ class APIConnection {
     }
 
     async getToken() {
-        const res = await fetch(API_URL + JWT);
-        try {
-            const jwt = await res.clone().json();
-            return jwt;
-        } catch (err) {
-            const message = await res.text();
-            console.log(message);
-        }
+        return fetch(API_URL + JWT);
     }
 
     async getProjects() {
@@ -140,21 +133,6 @@ class APIConnection {
         };
         return fetch(
             `${API_URL + PROJECTS + COLUMNS}`,
-            requestConf
-        ).then((res) => res.json());
-    }
-    // Update a project
-    async updateColumns(id, name, time) {
-        const requestConf = {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                name: name,
-                time: time,
-            }),
-        };
-        return fetch(
-            `${API_URL + PROJECTS + COLUMNS + id}`,
             requestConf
         ).then((res) => res.json());
     }

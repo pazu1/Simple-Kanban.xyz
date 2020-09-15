@@ -44,7 +44,7 @@ function Kanban(props) {
         item: null,
         type: null,
     });
-    const setModalOpen = (visible) => {
+    const closeModal = () => {
         setModalActivate({ opened: false, item: null, type: null });
     };
 
@@ -123,7 +123,7 @@ function Kanban(props) {
         <div className="kanban">
             <PromptModal
                 modalOpen={modalActivate.opened}
-                setModalOpen={setModalOpen}
+                closeModal={closeModal}
                 promptType={modalActivate.type}
                 item={modalActivate.item}
             />

@@ -12,7 +12,7 @@ export const promptTypes = {
 };
 
 function PromptModal(props) {
-    const { modalOpen, setModalOpen, promptType, item } = props;
+    const { modalOpen, closeModal, promptType, item } = props;
     const [editedName, setEditedName] = useState("");
     const { addColumn, removeColumn, changeColumnTitle } = useContext(
         KanbanContext
@@ -39,16 +39,13 @@ function PromptModal(props) {
                         Mark cards in this column as done
                     </label>
                 </div>
-                <button
-                    className="mButton--red"
-                    onClick={() => setModalOpen(false)}
-                >
+                <button className="mButton--red" onClick={() => closeModal()}>
                     Cancel
                 </button>
                 <button
                     onClick={() => {
                         addColumn(editedName);
-                        setModalOpen(false);
+                        closeModal();
                     }}
                     className="mButton--green"
                 >
@@ -61,16 +58,13 @@ function PromptModal(props) {
                     Are you sure you want to delete column <b>{item.title}</b>?
                     All cards inside the column will also be deleted.
                 </div>
-                <button
-                    className="mButton--red"
-                    onClick={() => setModalOpen(false)}
-                >
+                <button className="mButton--red" onClick={() => closeModal()}>
                     Cancel
                 </button>
                 <button
                     onClick={() => {
                         removeColumn(item.id);
-                        setModalOpen(false);
+                        closeModal();
                     }}
                     className="mButton--green"
                 >
@@ -87,16 +81,13 @@ function PromptModal(props) {
                     onChange={(e) => setEditedName(e.target.value)}
                     value={editedName}
                 />
-                <button
-                    className="mButton--red"
-                    onClick={() => setModalOpen(false)}
-                >
+                <button className="mButton--red" onClick={() => closeModal()}>
                     Cancel
                 </button>
                 <button
                     onClick={() => {
                         changeColumnTitle(item.id, editedName);
-                        setModalOpen(false);
+                        closeModal();
                     }}
                     className="mButton--green"
                 >
@@ -112,7 +103,7 @@ function PromptModal(props) {
     return (
         <Modal
             isOpen={modalOpen}
-            onRequestClose={() => setModalOpen(false)}
+            onRequestClose={() => closeModal()}
             contentLabel={"test"}
             className="modal"
             overlayClassName="overlay"

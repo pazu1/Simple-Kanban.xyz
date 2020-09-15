@@ -54,6 +54,7 @@ class KanbanContextProvider extends React.Component {
     constructor() {
         super();
         this.state = {
+            error: null,
             columns: [],
             projects: [],
             currentProject: null,
@@ -79,7 +80,11 @@ class KanbanContextProvider extends React.Component {
 
     async componentDidMount() {
         this.API = new APIConnection();
-        await this.API.getToken();
+        const tokenRes = await this.API.getToken();
+        if (tokenRes.status === 500) {
+            this.setState({ error: 500 });
+            return;
+        }
 
         // Get projects
         let resProjects = await this.API.getProjects();
@@ -99,7 +104,6 @@ class KanbanContextProvider extends React.Component {
             if (pr.lastAccessed > time) lastProject = pr;
         });
 
-        console.log(projects);
         this.loadProject(lastProject.id, lastProject.title);
     }
 
@@ -442,6 +446,7 @@ class KanbanContextProvider extends React.Component {
             unfinishedCard,
             synchronizing,
             unfinishedColumns,
+            error,
         } = this.state;
         const {
             loadProject,
@@ -463,6 +468,7 @@ class KanbanContextProvider extends React.Component {
         return (
             <KanbanContext.Provider
                 value={{
+                    error,
                     columns,
                     projects,
                     currentProject,
