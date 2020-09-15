@@ -72,9 +72,8 @@ router.get("/projects", (req, res) => {
         const { user_id } = req.user;
         const allProjects = await pool.query(
             `
-            SELECT pr.project_id, pr.project_name, kc.title, kc.k_column_id, kc.index
-                FROM project pr INNER JOIN k_column kc
-                ON pr.user_id = $1 AND kc.user_id = $1;
+            SELECT pr.project_id, pr.project_name, pr.last_accessed
+                FROM project pr WHERE pr.user_id = $1;
             `,
             [user_id]
         );
@@ -103,7 +102,6 @@ router.get("/cards", (req, res) => {
             `,
             [user_id, project_id]
         );
-        if (!allCards.rows.length) throw new Error("No cards found.");
         return res.json(new Response(true, "Cards retrieved.", allCards.rows));
     }, res)();
 });
@@ -248,6 +246,36 @@ router.delete("/cards/:id", (req, res) => {
 // COLUMNS
 //
 
+// Get all columns for a project
+router.get("/projects/columns/:project_id", (req, res) => {
+    console.log("request process");
+    useErrorHandler(async () => {
+        const { user_id } = req.user;
+        const { project_id } = req.params;
+        console.log(project_id, user_id);
+        const projectColumns = await pool.query(
+            `
+            SELECT kc.title, kc.k_column_id, kc.index
+                FROM k_column kc 
+                WHERE kc.user_id = $1 AND kc.project_id = $2;
+            `,
+            [user_id, project_id]
+        );
+        pool.query(
+            `
+            UPDATE project AS pr
+            SET last_accessed = to_timestamp(${Date.now()} / 1000.0)
+            WHERE pr.project_id = $1 AND pr.user_id = $2
+            `,
+            [project_id, user_id]
+        );
+
+        return res.json(
+            new Response(true, "Columns retrieved.", projectColumns.rows)
+        );
+    }, res)();
+});
+
 // Add a new column
 // TODO: check that user is authorized to add column to project
 router.post("/projects/columns", (req, res) => {
@@ -268,7 +296,6 @@ router.post("/projects/columns", (req, res) => {
 });
 
 //  update column indices and names
-//  TODO
 router.put("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user; // TODO refactor this to update indices and or names

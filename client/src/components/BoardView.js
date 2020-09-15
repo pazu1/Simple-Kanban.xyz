@@ -6,11 +6,11 @@ import Kanban from "./Kanban";
 import SideBar from "./SideBar";
 import TopBar from "./TopBar";
 import { FilterContextProvider } from "./FilterContext";
+
 function BoardView(props) {
     return (
         <div>
             <DndProvider backend={HTML5Backend}>
-                <SideBar />
                 <FilterContextProvider>
                     <TopBar />
                     <Kanban />

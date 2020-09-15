@@ -55,11 +55,13 @@ class KanbanContextProvider extends React.Component {
         super();
         this.state = {
             columns: [],
+            projects: [],
             currentProject: null,
             unfinishedColumns: [], // Columns that are being edited, must be empty when editing is done TODO: DELETE, not needed
             unfinishedCard: null, // A card that is being edited
             synchronizing: true,
         };
+        this.loadProject = this.loadProject.bind(this);
         this.changeCardPosition = this.changeCardPosition.bind(this);
         this.addCard = this.addCard.bind(this);
         this.removeCard = this.removeCard.bind(this);
@@ -79,42 +81,77 @@ class KanbanContextProvider extends React.Component {
         this.API = new APIConnection();
         await this.API.getToken();
 
-        // Get project
+        // Get projects
         let resProjects = await this.API.getProjects();
-        let projects = resProjects.content;
+        let projects = resProjects.content.map((pr) => {
+            return {
+                id: pr.project_id,
+                title: pr.project_name,
+                lastAccessed: new Date(pr.last_accessed).getTime(),
+            };
+        });
         if (!projects) return;
+        this.setState({ projects: projects });
+        // Load first project by default, TODO: make this the last one accessed
+        let lastProject = null;
+        let time = 0;
+        projects.forEach((pr) => {
+            if (pr.lastAccessed > time) lastProject = pr;
+        });
+
+        console.log(projects);
+        this.loadProject(lastProject.id, lastProject.title);
+    }
+
+    async loadProject(projectId, projectName) {
+        const columnsRes = await this.API.getColumns(projectId);
+        console.log(projectId, columnsRes);
+        if (!columnsRes.success) return;
+        const columnsData = columnsRes.content;
         let project = {
             projectId: null,
             columns: [],
             projectName: "",
         };
-        project.projectId = projects[0].project_id;
-        project.projectName = projects[0].project_name;
-        project.columns = projects
-            .filter((pr) => pr.project_id === project.projectId)
-            .map((pr) => {
-                return new Column(
-                    pr.k_column_id,
-                    pr.title,
-                    [],
-                    true,
-                    pr.index,
-                    pr.k_column_id
-                );
+        project.projectId = projectId;
+        project.projectName = projectName;
+        if (columnsRes.content.length === 0) {
+            this.setState({
+                currentProject: project,
+                columns: [],
+                synchronizing: false,
             });
+            return;
+        }
+        project.columns = columnsData.map((pr) => {
+            return new Column(
+                pr.k_column_id,
+                pr.title,
+                [],
+                true,
+                pr.index,
+                pr.k_column_id
+            );
+        });
+
         let resCards = await this.API.getCards(project.projectId);
+        console.log(project.columns);
         let fetchedCards = resCards.content;
-        let cards = fetchedCards
-            .map((c) => {
-                return new Card(
-                    c.card_id,
-                    c.description,
-                    c.k_index,
-                    c.k_column_id,
-                    c.k_priority
-                );
-            })
-            .sort(sortByIndex);
+        let cards = [];
+        console.log(fetchedCards);
+        if (fetchedCards.length) {
+            cards = fetchedCards
+                .map((c) => {
+                    return new Card(
+                        c.card_id,
+                        c.description,
+                        c.k_index,
+                        c.k_column_id,
+                        c.k_priority
+                    );
+                })
+                .sort(sortByIndex);
+        }
         sortAndNormalizeIndices(project.columns);
         project.columns.forEach((col, i) => {
             cards.forEach((c) => {
@@ -125,8 +162,6 @@ class KanbanContextProvider extends React.Component {
         });
 
         if (!resCards) return;
-
-        console.log(project.columns);
 
         this.setState({
             currentProject: project,
@@ -309,6 +344,7 @@ class KanbanContextProvider extends React.Component {
     // TODO: refactor
     async finishColumnEdit() {
         let copyColFinished = this.state.unfinishedColumns;
+        if (!copyColFinished.length) return;
         const res = await this.API.updateColumns(
             copyColFinished,
             this.state.projectId
@@ -401,12 +437,14 @@ class KanbanContextProvider extends React.Component {
     render() {
         const {
             columns,
+            projects,
             currentProject,
             unfinishedCard,
             synchronizing,
             unfinishedColumns,
         } = this.state;
         const {
+            loadProject,
             addCard,
             removeCard,
             updateCardPriority,
@@ -426,8 +464,10 @@ class KanbanContextProvider extends React.Component {
             <KanbanContext.Provider
                 value={{
                     columns,
+                    projects,
                     currentProject,
                     unfinishedCard,
+                    loadProject,
                     addCard,
                     removeCard,
                     makeCardEditable,

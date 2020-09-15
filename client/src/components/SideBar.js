@@ -13,6 +13,7 @@ function SideBar(props) {
                 title="Recent"
                 dropdown={true}
             />
+            <SidebarButton title="Main menu" />
             <SidebarButton title="My Projects" dropdown={true} />
             <SidebarButton title="Bookmarks" />
             <SidebarButton title="Settings" />

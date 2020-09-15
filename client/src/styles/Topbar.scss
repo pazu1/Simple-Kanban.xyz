@@ -13,6 +13,11 @@
     }
 }
 
+.backBtnContainer {
+    vertical-align: middle;
+    display: table-cell;
+    text-align: right;
+}
 .topbar {
     background: $bgwhite;
     z-index: 5;
@@ -38,7 +43,10 @@
         background: $bggray;
         vertical-align: middle;
         padding-left: 16px;
-        margin-left: calc(50vw - 100px);
+        margin-left: calc(50vw - 160px);
         margin-top: 10px;
+    }
+    svg {
+        fill:  $accent;
     }
 }

@@ -89,6 +89,12 @@ class APIConnection {
         );
     }
 
+    async getColumns(projectId) {
+        return fetch(
+            `${API_URL + PROJECTS + COLUMNS + projectId}`
+        ).then((res) => res.json());
+    }
+
     async postColumn(title, index, projectId) {
         const requestConf = {
             method: "POST",
@@ -134,6 +140,21 @@ class APIConnection {
         };
         return fetch(
             `${API_URL + PROJECTS + COLUMNS}`,
+            requestConf
+        ).then((res) => res.json());
+    }
+    // Update a project
+    async updateColumns(id, name, time) {
+        const requestConf = {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: name,
+                time: time,
+            }),
+        };
+        return fetch(
+            `${API_URL + PROJECTS + COLUMNS + id}`,
             requestConf
         ).then((res) => res.json());
     }

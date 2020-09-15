@@ -1,5 +1,8 @@
 import React, { useContext } from "react";
+import { Link } from "react-router-dom";
 import MdSync from "react-ionicons/lib/MdSync";
+import MdBack from "react-ionicons/lib/MdArrowRoundBack";
+import MdHome from "react-ionicons/lib/MdHome";
 import "../styles/Topbar.scss";
 
 import KanbanContext from "./KanbanContext";
@@ -15,6 +18,10 @@ function TopBar(props) {
 
     return (
         <div className="topbar">
+            <Link to="/" className="backBtnContainer">
+                <MdHome />
+                <MdBack />
+            </Link>
             <input
                 className="searchBar"
                 type="text"
