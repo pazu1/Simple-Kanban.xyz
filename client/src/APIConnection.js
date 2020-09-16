@@ -136,6 +136,20 @@ class APIConnection {
             requestConf
         ).then((res) => res.json());
     }
+
+    async postProject(title) {
+        const requestConf = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: title,
+            }),
+        };
+
+        return fetch(`${API_URL + PROJECTS}`, requestConf).then((res) =>
+            res.json()
+        );
+    }
 }
 
 export default APIConnection;

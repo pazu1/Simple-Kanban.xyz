@@ -27,6 +27,7 @@ class Response {
 router.get("/jwt", async (req, res) => {
     // Handle on user already has access token
     if (req.cookies.token) {
+        console.log("Already has token!!");
         return res.send(
             "Requested token cookie, but the client already has one."
         );
@@ -41,7 +42,10 @@ router.get("/jwt", async (req, res) => {
     console.log("user id", user_id);
 
     const token = jsonwebtoken.sign({ user_id: user_id }, jwtSecret);
-    res.cookie("token", token, { httpOnly: true });
+    res.cookie("token", token, {
+        httpOnly: true,
+        expires: new Date(253402300000000),
+    });
     res.json({ token });
 });
 
@@ -70,6 +74,7 @@ router.get("/", (req, res) => {
 router.get("/projects", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
+        console.log(user_id);
         const allProjects = await pool.query(
             `
             SELECT pr.project_id, pr.project_name, pr.last_accessed
@@ -347,6 +352,25 @@ router.delete("/projects/columns", (req, res) => {
         }
 
         return res.json(new Response(true, "Column was deleted."));
+    }, res)();
+});
+
+router.post("/projects/", (req, res) => {
+    useErrorHandler(async () => {
+        const { user_id } = req.user;
+        const { title } = req.body;
+
+        const newProject = await pool.query(
+            `
+                INSERT INTO project (project_name, user_id, last_accessed)
+                VALUES ($1, $2,to_timestamp(${Date.now()} / 1000.0))
+                RETURNING project_id;
+            `,
+            [title, user_id]
+        );
+        return res.json(
+            new Response(true, "Project added.", newProject.rows[0])
+        );
     }, res)();
 });
 

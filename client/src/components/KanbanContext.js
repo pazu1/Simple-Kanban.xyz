@@ -76,6 +76,7 @@ class KanbanContextProvider extends React.Component {
         this.removeColumn = this.removeColumn.bind(this);
         this.addColumn = this.addColumn.bind(this);
         this.changeColumnTitle = this.changeColumnTitle.bind(this);
+        this.addProject = this.addProject.bind(this);
     }
 
     async componentDidMount() {
@@ -88,6 +89,7 @@ class KanbanContextProvider extends React.Component {
 
         // Get projects
         let resProjects = await this.API.getProjects();
+        if (!resProjects.content) return;
         let projects = resProjects.content.map((pr) => {
             return {
                 id: pr.project_id,
@@ -96,6 +98,7 @@ class KanbanContextProvider extends React.Component {
             };
         });
         if (!projects) return;
+        console.log(projects);
         this.setState({ projects: projects });
         // Load first project by default, TODO: make this the last one accessed
         let lastProject = null;
@@ -103,6 +106,7 @@ class KanbanContextProvider extends React.Component {
         projects.forEach((pr) => {
             if (pr.lastAccessed > time) lastProject = pr;
         });
+        console.log(projects);
 
         this.loadProject(lastProject.id, lastProject.title);
     }
@@ -438,6 +442,17 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
+    async addProject(title) {
+        let res = await this.API.postProject(title);
+        if (!res.success) return;
+        const id = res.success.project_id;
+        this.setState((prevState) => {
+            let copyProjects = prevState.projects;
+            copyProjects.push({ id: id, title: title });
+            return { projects: copyProjects };
+        });
+    }
+
     render() {
         const {
             columns,
@@ -463,6 +478,7 @@ class KanbanContextProvider extends React.Component {
             removeColumn,
             addColumn,
             changeColumnTitle,
+            addProject,
         } = this;
 
         return (
@@ -489,6 +505,7 @@ class KanbanContextProvider extends React.Component {
                     removeColumn,
                     addColumn,
                     changeColumnTitle,
+                    addProject,
                 }}
             >
                 {this.props.children}

@@ -14,9 +14,12 @@ export const promptTypes = {
 function PromptModal(props) {
     const { modalOpen, closeModal, promptType, item } = props;
     const [editedName, setEditedName] = useState("");
-    const { addColumn, removeColumn, changeColumnTitle } = useContext(
-        KanbanContext
-    );
+    const {
+        addColumn,
+        removeColumn,
+        changeColumnTitle,
+        addProject,
+    } = useContext(KanbanContext);
     const content =
         promptType === promptTypes.ADDING_COLUMN ? ( // TODO: validate user input
             <>
@@ -87,6 +90,29 @@ function PromptModal(props) {
                 <button
                     onClick={() => {
                         changeColumnTitle(item.id, editedName);
+                        closeModal();
+                    }}
+                    className="mButton--green"
+                >
+                    Confirm
+                </button>
+            </>
+        ) : promptType === promptTypes.CREATING_PROJECT ? (
+            <>
+                <div style={{ paddingTop: 10 }}>Enter new project name:</div>
+                <textarea
+                    autoFocus
+                    className="cardTextArea"
+                    type="text"
+                    onChange={(e) => setEditedName(e.target.value)}
+                    value={editedName}
+                />
+                <button className="mButton--red" onClick={() => closeModal()}>
+                    Cancel
+                </button>
+                <button
+                    onClick={() => {
+                        addProject(editedName);
                         closeModal();
                     }}
                     className="mButton--green"

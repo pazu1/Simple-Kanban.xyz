@@ -13,12 +13,15 @@ function Index(props) {
         item: null,
         type: null,
     });
+    const closeModal = () => {
+        setModalActivate({ opened: false, item: null, type: null });
+    };
 
-    console.log(projects);
     return (
         <>
             <PromptModal
                 modalOpen={modalActivate.opened}
+                closeModal={closeModal}
                 promptType={modalActivate.type}
                 item={modalActivate.item}
             />
@@ -45,7 +48,18 @@ function Index(props) {
                             </div>
                         );
                     })}
-                    <div className="project">+ Create new</div>
+                    <div
+                        className="projectAdd"
+                        onClick={() =>
+                            setModalActivate({
+                                opened: true,
+                                item: null,
+                                type: promptTypes.CREATING_PROJECT,
+                            })
+                        }
+                    >
+                        + Create new
+                    </div>
                 </div>
             </div>
         </>
