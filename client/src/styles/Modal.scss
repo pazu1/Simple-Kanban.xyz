@@ -36,12 +36,14 @@
     &--red {
         @extend .mButton;
         background: $red;
-        position:absolute;bottom:10px; left: 10px;
+        position:absolute;
+        left: 10px;
     }
     &--green {
         @extend .mButton;
         background: $green;
-        position:absolute;bottom:10px; right: 10px;
+        position:absolute;
+        right: 10px;
     }
 }
 
