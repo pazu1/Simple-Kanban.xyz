@@ -251,9 +251,8 @@ router.delete("/cards/:id", (req, res) => {
 // COLUMNS
 //
 
-// Get all columns for a project
+// Get all columns for a project // TODO: project_id is undefined right after adding a new project
 router.get("/projects/columns/:project_id", (req, res) => {
-    console.log("request process");
     useErrorHandler(async () => {
         const { user_id } = req.user;
         const { project_id } = req.params;
@@ -371,6 +370,27 @@ router.post("/projects/", (req, res) => {
         return res.json(
             new Response(true, "Project added.", newProject.rows[0])
         );
+    }, res)();
+});
+
+// delete a project
+router.delete("/projects/:project_id", (req, res) => {
+    useErrorHandler(async () => {
+        const { user_id } = req.user;
+        const { project_id } = req.params;
+        const deletedPr = await pool.query(
+            `
+            DELETE FROM project pr
+            WHERE pr.project_id = $1 AND pr.user_id = $2
+            RETURNING pr.project_id
+            `,
+            [project_id, user_id]
+        );
+        if (!deletedPr.rows.length) {
+            throw new Error("Could not delete column.");
+        }
+
+        return res.json(new Response(true, "Column was deleted."));
     }, res)();
 });
 

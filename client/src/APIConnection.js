@@ -150,6 +150,16 @@ class APIConnection {
             res.json()
         );
     }
+    async deleteProject(id) {
+        const requestConf = {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+        };
+
+        return fetch(`${API_URL + PROJECTS + id}`, requestConf).then((res) =>
+            res.json()
+        );
+    }
 }
 
 export default APIConnection;

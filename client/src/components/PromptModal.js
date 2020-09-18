@@ -9,6 +9,7 @@ export const promptTypes = {
     DELETING_COLUMN: 1,
     EDITING_COLUMN: 2,
     CREATING_PROJECT: 3,
+    DELETING_PROJECT: 4,
 };
 
 function PromptModal(props) {
@@ -19,6 +20,7 @@ function PromptModal(props) {
         removeColumn,
         changeColumnTitle,
         addProject,
+        removeProject,
     } = useContext(KanbanContext);
     const content =
         promptType === promptTypes.ADDING_COLUMN ? ( // TODO: validate user input
@@ -113,6 +115,25 @@ function PromptModal(props) {
                 <button
                     onClick={() => {
                         addProject(editedName);
+                        closeModal();
+                    }}
+                    className="mButton--green"
+                >
+                    Confirm
+                </button>
+            </>
+        ) : promptType === promptTypes.DELETING_PROJECT ? (
+            <>
+                <div style={{ paddingTop: 10 }}>
+                    Are you sure you want to permanently delete project{" "}
+                    <b>{item.title}</b>?
+                </div>
+                <button className="mButton--red" onClick={() => closeModal()}>
+                    Cancel
+                </button>
+                <button
+                    onClick={() => {
+                        removeProject(item.id);
                         closeModal();
                     }}
                     className="mButton--green"

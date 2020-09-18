@@ -16,6 +16,7 @@ function Index(props) {
     const closeModal = () => {
         setModalActivate({ opened: false, item: null, type: null });
     };
+    console.log(projects);
 
     return (
         <>
@@ -43,7 +44,15 @@ function Index(props) {
                                 >
                                     {pr.title}
                                 </Link>
-                                <MdTrash />
+                                <MdTrash
+                                    onClick={() => {
+                                        setModalActivate({
+                                            opened: true,
+                                            item: pr,
+                                            type: promptTypes.DELETING_PROJECT,
+                                        });
+                                    }}
+                                />
                                 <hr />
                             </div>
                         );
