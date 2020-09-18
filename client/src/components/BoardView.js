@@ -1,21 +1,28 @@
-import React from "react";
+import React, { useContext } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
 import Kanban from "./Kanban";
-import SideBar from "./SideBar";
 import TopBar from "./TopBar";
+import LoadingScreen from "./LoadingScreen";
 import { FilterContextProvider } from "./FilterContext";
+import KanbanContext from "./KanbanContext";
 
 function BoardView(props) {
+    const { loading } = useContext(KanbanContext);
+
     return (
         <div>
-            <DndProvider backend={HTML5Backend}>
-                <FilterContextProvider>
-                    <TopBar />
-                    <Kanban />
-                </FilterContextProvider>
-            </DndProvider>
+            {loading ? (
+                <LoadingScreen />
+            ) : (
+                <DndProvider backend={HTML5Backend}>
+                    <FilterContextProvider>
+                        <TopBar />
+                        <Kanban />
+                    </FilterContextProvider>
+                </DndProvider>
+            )}
         </div>
     );
 }

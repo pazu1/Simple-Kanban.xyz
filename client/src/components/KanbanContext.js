@@ -60,7 +60,8 @@ class KanbanContextProvider extends React.Component {
             currentProject: null,
             unfinishedColumns: [], // Columns that are being edited (moved around)
             unfinishedCard: null, // A card that is being edited
-            synchronizing: true,
+            synchronizing: false,
+            loading: false,
         };
         this.loadProject = this.loadProject.bind(this);
         this.changeCardPosition = this.changeCardPosition.bind(this);
@@ -99,8 +100,9 @@ class KanbanContextProvider extends React.Component {
             };
         });
         if (!projects) return;
-        console.log(projects);
-        this.setState({ projects: projects });
+        this.setState({
+            projects: projects,
+        });
         let lastProject = null;
         let time = 0;
         projects.forEach((pr) => {
@@ -111,68 +113,70 @@ class KanbanContextProvider extends React.Component {
     }
 
     async loadProject(projectId, projectName) {
-        const columnsRes = await this.API.getColumns(projectId);
-        console.log(projectId, columnsRes);
-        if (!columnsRes.success) return;
-        const columnsData = columnsRes.content;
-        let project = {
-            projectId: projectId,
-            columns: [],
-            projectName: projectName,
-        };
-        if (columnsRes.content.length === 0) {
+        this.setState({ loading: true }, async () => {
+            const columnsRes = await this.API.getColumns(projectId);
+            console.log(projectId, columnsRes);
+            if (!columnsRes.success) return;
+            const columnsData = columnsRes.content;
+            let project = {
+                projectId: projectId,
+                columns: [],
+                projectName: projectName,
+            };
+            if (columnsRes.content.length === 0) {
+                this.setState({
+                    currentProject: project,
+                    columns: [],
+                    loading: false,
+                });
+                return;
+            }
+            // Load columns
+            project.columns = columnsData.map((pr) => {
+                return new Column(
+                    pr.k_column_id,
+                    pr.title,
+                    [],
+                    true,
+                    pr.index,
+                    pr.k_column_id
+                );
+            });
+            // Load cards
+            let resCards = await this.API.getCards(project.projectId);
+            console.log(project.columns);
+            let fetchedCards = resCards.content;
+            let cards = [];
+            console.log(fetchedCards);
+            if (fetchedCards.length) {
+                cards = fetchedCards
+                    .map((c) => {
+                        return new Card(
+                            c.card_id,
+                            c.description,
+                            c.k_index,
+                            c.k_column_id,
+                            c.k_priority
+                        );
+                    })
+                    .sort(sortByIndex);
+            }
+            sortAndNormalizeIndices(project.columns);
+            project.columns.forEach((col, i) => {
+                cards.forEach((c) => {
+                    if (c.columnId === col.id) {
+                        project.columns[i].cards.push(c);
+                    }
+                });
+            });
+
+            if (!resCards) return;
+
             this.setState({
                 currentProject: project,
-                columns: [],
-                synchronizing: false,
+                columns: project.columns,
+                loading: false,
             });
-            return;
-        }
-        // Load columns
-        project.columns = columnsData.map((pr) => {
-            return new Column(
-                pr.k_column_id,
-                pr.title,
-                [],
-                true,
-                pr.index,
-                pr.k_column_id
-            );
-        });
-        // Load cards
-        let resCards = await this.API.getCards(project.projectId);
-        console.log(project.columns);
-        let fetchedCards = resCards.content;
-        let cards = [];
-        console.log(fetchedCards);
-        if (fetchedCards.length) {
-            cards = fetchedCards
-                .map((c) => {
-                    return new Card(
-                        c.card_id,
-                        c.description,
-                        c.k_index,
-                        c.k_column_id,
-                        c.k_priority
-                    );
-                })
-                .sort(sortByIndex);
-        }
-        sortAndNormalizeIndices(project.columns);
-        project.columns.forEach((col, i) => {
-            cards.forEach((c) => {
-                if (c.columnId === col.id) {
-                    project.columns[i].cards.push(c);
-                }
-            });
-        });
-
-        if (!resCards) return;
-
-        this.setState({
-            currentProject: project,
-            columns: project.columns,
-            synchronizing: false,
         });
     }
 
@@ -467,6 +471,7 @@ class KanbanContextProvider extends React.Component {
             synchronizing,
             unfinishedColumns,
             error,
+            loading,
         } = this.state;
         const {
             loadProject,
@@ -513,6 +518,7 @@ class KanbanContextProvider extends React.Component {
                     changeColumnTitle,
                     addProject,
                     removeProject,
+                    loading,
                 }}
             >
                 {this.props.children}

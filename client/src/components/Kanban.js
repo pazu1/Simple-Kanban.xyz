@@ -118,7 +118,6 @@ function Kanban(props) {
             />
         );
     });
-
     return (
         <div className="kanban">
             <PromptModal

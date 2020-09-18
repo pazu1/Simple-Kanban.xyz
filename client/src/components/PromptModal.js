@@ -25,7 +25,7 @@ function PromptModal(props) {
     const content =
         promptType === promptTypes.ADDING_COLUMN ? ( // TODO: validate user input
             <>
-                <div style={{ paddingTop: 10 }}>Enter new column name:</div>
+                <p>Enter new column name:</p>
                 <textarea
                     autoFocus
                     className="cardTextArea"
@@ -59,10 +59,10 @@ function PromptModal(props) {
             </>
         ) : promptType === promptTypes.DELETING_COLUMN ? (
             <>
-                <div style={{ paddingTop: 10 }}>
+                <p>
                     Are you sure you want to delete column <b>{item.title}</b>?
                     All cards inside the column will also be deleted.
-                </div>
+                </p>
                 <button className="mButton--red" onClick={() => closeModal()}>
                     Cancel
                 </button>
@@ -78,7 +78,7 @@ function PromptModal(props) {
             </>
         ) : promptType === promptTypes.EDITING_COLUMN ? (
             <>
-                <div style={{ paddingTop: 10 }}>Enter new column name:</div>
+                <p>Enter new column name:</p>
                 <textarea
                     autoFocus
                     className="cardTextArea"
@@ -101,7 +101,7 @@ function PromptModal(props) {
             </>
         ) : promptType === promptTypes.CREATING_PROJECT ? (
             <>
-                <div style={{ paddingTop: 10 }}>Enter new project name:</div>
+                <p>Enter new project name:</p>
                 <textarea
                     autoFocus
                     className="cardTextArea"
@@ -124,10 +124,10 @@ function PromptModal(props) {
             </>
         ) : promptType === promptTypes.DELETING_PROJECT ? (
             <>
-                <div style={{ paddingTop: 10 }}>
+                <p>
                     Are you sure you want to permanently delete project{" "}
                     <b>{item.title}</b>?
-                </div>
+                </p>
                 <button className="mButton--red" onClick={() => closeModal()}>
                     Cancel
                 </button>
