@@ -9,18 +9,23 @@ export const promptTypes = {
     DELETING_COLUMN: 1,
     EDITING_COLUMN: 2,
     CREATING_PROJECT: 3,
+    DELETING_PROJECT: 4,
 };
 
 function PromptModal(props) {
-    const { modalOpen, setModalOpen, promptType, item } = props;
+    const { modalOpen, closeModal, promptType, item } = props;
     const [editedName, setEditedName] = useState("");
-    const { addColumn, removeColumn, changeColumnTitle } = useContext(
-        KanbanContext
-    );
+    const {
+        addColumn,
+        removeColumn,
+        changeColumnTitle,
+        addProject,
+        removeProject,
+    } = useContext(KanbanContext);
     const content =
         promptType === promptTypes.ADDING_COLUMN ? ( // TODO: validate user input
             <>
-                <div style={{ paddingTop: 10 }}>Enter new column name:</div>
+                <p>Enter new column name:</p>
                 <textarea
                     autoFocus
                     className="cardTextArea"
@@ -39,16 +44,13 @@ function PromptModal(props) {
                         Mark cards in this column as done
                     </label>
                 </div>
-                <button
-                    className="mButton--red"
-                    onClick={() => setModalOpen(false)}
-                >
+                <button className="mButton--red" onClick={() => closeModal()}>
                     Cancel
                 </button>
                 <button
                     onClick={() => {
                         addColumn(editedName);
-                        setModalOpen(false);
+                        closeModal();
                     }}
                     className="mButton--green"
                 >
@@ -57,20 +59,17 @@ function PromptModal(props) {
             </>
         ) : promptType === promptTypes.DELETING_COLUMN ? (
             <>
-                <div style={{ paddingTop: 10 }}>
+                <p>
                     Are you sure you want to delete column <b>{item.title}</b>?
                     All cards inside the column will also be deleted.
-                </div>
-                <button
-                    className="mButton--red"
-                    onClick={() => setModalOpen(false)}
-                >
+                </p>
+                <button className="mButton--red" onClick={() => closeModal()}>
                     Cancel
                 </button>
                 <button
                     onClick={() => {
                         removeColumn(item.id);
-                        setModalOpen(false);
+                        closeModal();
                     }}
                     className="mButton--green"
                 >
@@ -79,7 +78,7 @@ function PromptModal(props) {
             </>
         ) : promptType === promptTypes.EDITING_COLUMN ? (
             <>
-                <div style={{ paddingTop: 10 }}>Enter new column name:</div>
+                <p>Enter new column name:</p>
                 <textarea
                     autoFocus
                     className="cardTextArea"
@@ -87,16 +86,55 @@ function PromptModal(props) {
                     onChange={(e) => setEditedName(e.target.value)}
                     value={editedName}
                 />
-                <button
-                    className="mButton--red"
-                    onClick={() => setModalOpen(false)}
-                >
+                <button className="mButton--red" onClick={() => closeModal()}>
                     Cancel
                 </button>
                 <button
                     onClick={() => {
                         changeColumnTitle(item.id, editedName);
-                        setModalOpen(false);
+                        closeModal();
+                    }}
+                    className="mButton--green"
+                >
+                    Confirm
+                </button>
+            </>
+        ) : promptType === promptTypes.CREATING_PROJECT ? (
+            <>
+                <p>Enter new project name:</p>
+                <textarea
+                    autoFocus
+                    className="cardTextArea"
+                    type="text"
+                    onChange={(e) => setEditedName(e.target.value)}
+                    value={editedName}
+                />
+                <button className="mButton--red" onClick={() => closeModal()}>
+                    Cancel
+                </button>
+                <button
+                    onClick={() => {
+                        addProject(editedName);
+                        closeModal();
+                    }}
+                    className="mButton--green"
+                >
+                    Confirm
+                </button>
+            </>
+        ) : promptType === promptTypes.DELETING_PROJECT ? (
+            <>
+                <p>
+                    Are you sure you want to permanently delete project{" "}
+                    <b>{item.title}</b>?
+                </p>
+                <button className="mButton--red" onClick={() => closeModal()}>
+                    Cancel
+                </button>
+                <button
+                    onClick={() => {
+                        removeProject(item.id);
+                        closeModal();
                     }}
                     className="mButton--green"
                 >
@@ -112,7 +150,7 @@ function PromptModal(props) {
     return (
         <Modal
             isOpen={modalOpen}
-            onRequestClose={() => setModalOpen(false)}
+            onRequestClose={() => closeModal()}
             contentLabel={"test"}
             className="modal"
             overlayClassName="overlay"

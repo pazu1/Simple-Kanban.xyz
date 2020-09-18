@@ -7,6 +7,7 @@ CREATE TABLE k_user(
 CREATE TABLE project(
     project_id SERIAL PRIMARY KEY, 
     project_name VARCHAR(100) NOT NULL,
+    last_accessed TIMESTAMP,
     user_id INT NOT NULL,
     FOREIGN KEY (user_id)
     REFERENCES k_user(user_id)

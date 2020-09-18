@@ -27,6 +27,7 @@ class Response {
 router.get("/jwt", async (req, res) => {
     // Handle on user already has access token
     if (req.cookies.token) {
+        console.log("Already has token!!");
         return res.send(
             "Requested token cookie, but the client already has one."
         );
@@ -41,7 +42,10 @@ router.get("/jwt", async (req, res) => {
     console.log("user id", user_id);
 
     const token = jsonwebtoken.sign({ user_id: user_id }, jwtSecret);
-    res.cookie("token", token, { httpOnly: true });
+    res.cookie("token", token, {
+        httpOnly: true,
+        expires: new Date(253402300000000),
+    });
     res.json({ token });
 });
 
@@ -70,11 +74,11 @@ router.get("/", (req, res) => {
 router.get("/projects", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
+        console.log(user_id);
         const allProjects = await pool.query(
             `
-            SELECT pr.project_id, pr.project_name, kc.title, kc.k_column_id, kc.index
-                FROM project pr INNER JOIN k_column kc
-                ON pr.user_id = $1 AND kc.user_id = $1;
+            SELECT pr.project_id, pr.project_name, pr.last_accessed
+                FROM project pr WHERE pr.user_id = $1;
             `,
             [user_id]
         );
@@ -103,7 +107,6 @@ router.get("/cards", (req, res) => {
             `,
             [user_id, project_id]
         );
-        if (!allCards.rows.length) throw new Error("No cards found.");
         return res.json(new Response(true, "Cards retrieved.", allCards.rows));
     }, res)();
 });
@@ -248,6 +251,35 @@ router.delete("/cards/:id", (req, res) => {
 // COLUMNS
 //
 
+// Get all columns for a project // TODO: project_id is undefined right after adding a new project
+router.get("/projects/columns/:project_id", (req, res) => {
+    useErrorHandler(async () => {
+        const { user_id } = req.user;
+        const { project_id } = req.params;
+        console.log(project_id, user_id);
+        const projectColumns = await pool.query(
+            `
+            SELECT kc.title, kc.k_column_id, kc.index
+                FROM k_column kc 
+                WHERE kc.user_id = $1 AND kc.project_id = $2;
+            `,
+            [user_id, project_id]
+        );
+        pool.query(
+            `
+            UPDATE project AS pr
+            SET last_accessed = to_timestamp(${Date.now()} / 1000.0)
+            WHERE pr.project_id = $1 AND pr.user_id = $2
+            `,
+            [project_id, user_id]
+        );
+
+        return res.json(
+            new Response(true, "Columns retrieved.", projectColumns.rows)
+        );
+    }, res)();
+});
+
 // Add a new column
 // TODO: check that user is authorized to add column to project
 router.post("/projects/columns", (req, res) => {
@@ -268,7 +300,6 @@ router.post("/projects/columns", (req, res) => {
 });
 
 //  update column indices and names
-//  TODO
 router.put("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user; // TODO refactor this to update indices and or names
@@ -316,6 +347,46 @@ router.delete("/projects/columns", (req, res) => {
             [column_id, user_id]
         );
         if (!deletedCol.rows.length) {
+            throw new Error("Could not delete column.");
+        }
+
+        return res.json(new Response(true, "Column was deleted."));
+    }, res)();
+});
+
+router.post("/projects/", (req, res) => {
+    useErrorHandler(async () => {
+        const { user_id } = req.user;
+        const { title } = req.body;
+
+        const newProject = await pool.query(
+            `
+                INSERT INTO project (project_name, user_id, last_accessed)
+                VALUES ($1, $2,to_timestamp(${Date.now()} / 1000.0))
+                RETURNING project_id;
+            `,
+            [title, user_id]
+        );
+        return res.json(
+            new Response(true, "Project added.", newProject.rows[0])
+        );
+    }, res)();
+});
+
+// delete a project
+router.delete("/projects/:project_id", (req, res) => {
+    useErrorHandler(async () => {
+        const { user_id } = req.user;
+        const { project_id } = req.params;
+        const deletedPr = await pool.query(
+            `
+            DELETE FROM project pr
+            WHERE pr.project_id = $1 AND pr.user_id = $2
+            RETURNING pr.project_id
+            `,
+            [project_id, user_id]
+        );
+        if (!deletedPr.rows.length) {
             throw new Error("Could not delete column.");
         }
 

@@ -15,14 +15,7 @@ class APIConnection {
     }
 
     async getToken() {
-        const res = await fetch(API_URL + JWT);
-        try {
-            const jwt = await res.clone().json();
-            return jwt;
-        } catch (err) {
-            const message = await res.text();
-            console.log(message);
-        }
+        return fetch(API_URL + JWT);
     }
 
     async getProjects() {
@@ -89,6 +82,12 @@ class APIConnection {
         );
     }
 
+    async getColumns(projectId) {
+        return fetch(
+            `${API_URL + PROJECTS + COLUMNS + projectId}`
+        ).then((res) => res.json());
+    }
+
     async postColumn(title, index, projectId) {
         const requestConf = {
             method: "POST",
@@ -136,6 +135,30 @@ class APIConnection {
             `${API_URL + PROJECTS + COLUMNS}`,
             requestConf
         ).then((res) => res.json());
+    }
+
+    async postProject(title) {
+        const requestConf = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: title,
+            }),
+        };
+
+        return fetch(`${API_URL + PROJECTS}`, requestConf).then((res) =>
+            res.json()
+        );
+    }
+    async deleteProject(id) {
+        const requestConf = {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+        };
+
+        return fetch(`${API_URL + PROJECTS + id}`, requestConf).then((res) =>
+            res.json()
+        );
     }
 }
 

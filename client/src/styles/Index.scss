@@ -1,0 +1,44 @@
+@import "./_theme.scss";
+
+.boardIcon {
+    margin-bottom: -3px;
+    color: $accent;
+    fill: $accent;
+}
+.boardsContainer {
+    display: flex;
+    flex-direction: column;
+    width: 260px;
+    justify-content: center;
+    svg {
+        height: 20px;
+        fill: $accent;
+        vertical-align: middle;
+        position: absolute;
+        right: 30px;
+    }
+    hr {
+        border-top: 1px solid $accent;
+        margin-top: 10px;
+    }
+}
+
+.projectAdd {
+    cursor: pointer;
+}
+
+.indexHeader {
+    color: $accent;
+    height: 200px;
+    margin: 0;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+a {
+    text-decoration: none;
+    color: $brightblue;
+}
