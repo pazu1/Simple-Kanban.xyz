@@ -1,12 +1,17 @@
 import React, { createContext } from "react";
+import CryptoJS from "crypto-js";
 
 import {
     arraymove,
     normalizeIndices,
     sortByIndex,
     sortAndNormalizeIndices,
+    checkCookie,
 } from "../utils/const";
 import APIConnection from "../APIConnection";
+import Encryption from "../Encryption";
+const Enc = new Encryption();
+const API = new APIConnection(Enc);
 const KanbanContext = createContext();
 
 // This class works as middleware between the UI and API calls
@@ -82,15 +87,22 @@ class KanbanContextProvider extends React.Component {
     }
 
     async componentDidMount() {
-        this.API = new APIConnection();
-        const tokenRes = await this.API.getToken();
+        const tokenRes = await API.getToken(); // get JWT for authorization
+
+        let encryptionKey = localStorage.getItem("encryptionKey");
+        if (!encryptionKey) {
+            encryptionKey = Enc.generateKey();
+            localStorage.setItem("encryptionKey", encryptionKey);
+        }
+        Enc.key = encryptionKey;
+
         if (tokenRes.status === 500) {
             this.setState({ error: 500 });
             return;
         }
 
         // Get projects
-        let resProjects = await this.API.getProjects();
+        let resProjects = await API.getProjects();
         if (!resProjects.content) return;
         let projects = resProjects.content.map((pr) => {
             return {
@@ -114,7 +126,7 @@ class KanbanContextProvider extends React.Component {
 
     async loadProject(projectId, projectName) {
         this.setState({ loading: true }, async () => {
-            const columnsRes = await this.API.getColumns(projectId);
+            const columnsRes = await API.getColumns(projectId);
             console.log(projectId, columnsRes);
             if (!columnsRes.success) return;
             const columnsData = columnsRes.content;
@@ -143,7 +155,7 @@ class KanbanContextProvider extends React.Component {
                 );
             });
             // Load cards
-            let resCards = await this.API.getCards(project.projectId);
+            let resCards = await API.getCards(project.projectId);
             console.log(project.columns);
             let fetchedCards = resCards.content;
             let cards = [];
@@ -194,14 +206,14 @@ class KanbanContextProvider extends React.Component {
     }
 
     async removeCard(card) {
-        let res = await this.API.deleteCard(card.id);
+        let res = await API.deleteCard(card.id);
         let copyColumns = this.state.columns;
         let cardColumn = copyColumns.find((col) => col.id === card.columnId)
             .cards;
         cardColumn.splice(cardColumn.indexOf(card), 1);
         if (cardColumn.length) {
             normalizeIndices(cardColumn);
-            let res = await this.API.updateColsOfCards(cardColumn, []); // Update the indices
+            let res = await API.updateColsOfCards(cardColumn, []); // Update the indices
         }
         this.setState({ columns: copyColumns });
     }
@@ -219,7 +231,7 @@ class KanbanContextProvider extends React.Component {
         editedCard.description = description;
         editedCard.finished = true;
         if (editedCard.id !== -1) {
-            let res = this.API.updateCard(
+            let res = API.updateCard(
                 editedCard.id,
                 editedCard.description,
                 editedCard.priority
@@ -231,7 +243,7 @@ class KanbanContextProvider extends React.Component {
             return;
         }
 
-        let res = await this.API.postCard(
+        let res = await API.postCard(
             editedCard,
             this.state.currentProject.projectId
         );
@@ -299,7 +311,7 @@ class KanbanContextProvider extends React.Component {
     }
 
     async removeColumn(columnId) {
-        const res = await this.API.deleteColumn(columnId);
+        const res = await API.deleteColumn(columnId);
         if (!res.success) return;
         this.setState((prevState) => {
             let copyColumns = prevState.columns;
@@ -313,7 +325,7 @@ class KanbanContextProvider extends React.Component {
     async addColumn(columnTitle) {
         let copyColumns = this.state.columns;
         const newIndex = copyColumns.length;
-        const res = await this.API.postColumn(
+        const res = await API.postColumn(
             columnTitle,
             newIndex,
             this.state.currentProject.projectId
@@ -327,7 +339,7 @@ class KanbanContextProvider extends React.Component {
     }
 
     async changeColumnTitle(columnId, newTitle) {
-        const res = await this.API.updateColumns(
+        const res = await API.updateColumns(
             [{ id: columnId, title: newTitle, index: null }],
             this.state.currentProject.projectId
         );
@@ -352,7 +364,7 @@ class KanbanContextProvider extends React.Component {
     async finishColumnEdit() {
         let copyColFinished = this.state.unfinishedColumns;
         if (!copyColFinished.length) return;
-        const res = await this.API.updateColumns(
+        const res = await API.updateColumns(
             copyColFinished,
             this.state.projectId
         );
@@ -378,7 +390,7 @@ class KanbanContextProvider extends React.Component {
                 cbCards = this.state.columns.find((c) => c.id === oldColId)
                     .cards;
             }
-            this.API.updateColsOfCards(caCards, cbCards);
+            API.updateColsOfCards(caCards, cbCards);
         };
         if (card.columnId === toColumn.id) {
             this.setState(
@@ -428,18 +440,14 @@ class KanbanContextProvider extends React.Component {
         if (card.priority === priority) return;
         let copyColumns = this.state.columns;
         card.priority = priority;
-        let res = await this.API.updateCard(
-            card.id,
-            card.description,
-            priority
-        );
+        let res = await API.updateCard(card.id, card.description, priority);
         this.setState({
             columns: copyColumns,
         });
     }
 
     async addProject(title) {
-        let res = await this.API.postProject(title);
+        let res = await API.postProject(title);
         if (!res.success) return;
         const id = res.content.project_id;
         this.setState((prevState) => {
@@ -450,7 +458,7 @@ class KanbanContextProvider extends React.Component {
     }
 
     async removeProject(id) {
-        let res = await this.API.deleteProject(id);
+        let res = await API.deleteProject(id);
         if (!res.success) return;
         this.setState((prevState) => {
             let copyProjects = prevState.projects;

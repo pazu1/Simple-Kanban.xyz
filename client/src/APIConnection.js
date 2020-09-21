@@ -5,13 +5,15 @@ const PROJECTS = "projects/";
 const COLUMNS = "columns/";
 
 class APIConnection {
-    constructor() {
+    constructor(Encryption) {
         const instance = this.constructor.instance;
         if (instance) {
             return instance;
         }
 
         this.instance = this;
+        this.encryptionKey = null;
+        this.Enc = Encryption;
     }
 
     async getToken() {
@@ -29,11 +31,12 @@ class APIConnection {
 
     async postCard(card, project_id) {
         let { description, columnId, index, priority } = card;
+        const enc_description = this.Enc.encrypt(description);
         const requestConf = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                description: description,
+                description: enc_description,
                 index: index,
                 k_column_id: columnId,
                 priority: priority,
