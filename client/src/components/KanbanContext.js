@@ -6,7 +6,6 @@ import {
     normalizeIndices,
     sortByIndex,
     sortAndNormalizeIndices,
-    checkCookie,
 } from "../utils/const";
 import APIConnection from "../APIConnection";
 import Encryption from "../Encryption";
@@ -17,7 +16,6 @@ const KanbanContext = createContext();
 // This class works as middleware between the UI and API calls
 
 // TODO: reporting errors to user and UI feedback
-//       decrypt strings recieved from the API
 //       refactor setStates to be more robust, wrap more of the function into setState
 
 class Column {
@@ -129,7 +127,6 @@ class KanbanContextProvider extends React.Component {
     async loadProject(projectId, projectName) {
         this.setState({ loading: true }, async () => {
             const columnsRes = await API.getColumns(projectId);
-            console.log(projectId, columnsRes);
             if (!columnsRes.success) return;
             const columnsData = columnsRes.content;
             let project = {
@@ -158,10 +155,8 @@ class KanbanContextProvider extends React.Component {
             });
             // Load cards
             let resCards = await API.getCards(project.projectId);
-            console.log(project.columns);
             let fetchedCards = resCards.content;
             let cards = [];
-            console.log(fetchedCards);
             if (fetchedCards.length) {
                 cards = fetchedCards
                     .map((c) => {
@@ -196,10 +191,8 @@ class KanbanContextProvider extends React.Component {
 
     // Add a rendered card (to the current project)
     addCard(columnId, index) {
-        console.log(columnId, "COLID");
         this.setState((prevState) => {
             let copyColumns = prevState.columns;
-            console.log(prevState.columns);
             let copyColumn = copyColumns.find((col) => col.id === columnId);
             const card = new Card(-1, "", index, columnId, 1, false);
             copyColumn.cards.push(card);
@@ -304,7 +297,6 @@ class KanbanContextProvider extends React.Component {
             // Swap indices
             replacedCol.index = oldi;
             movedCol.index = newi;
-            console.log(replacedCol, movedCol);
 
             return {
                 unfinishedColumns: copyColumns,
@@ -364,12 +356,14 @@ class KanbanContextProvider extends React.Component {
     // Clear state.unfinishedColumns and call API to update the database
     // this only handles changing column indices,
     async finishColumnEdit() {
-        let copyColFinished = this.state.unfinishedColumns;
+        const copyColFinished = [...this.state.unfinishedColumns];
+
         if (!copyColFinished.length) return;
         const res = await API.updateColumns(
             copyColFinished,
             this.state.projectId
         );
+        if (!res.success) return;
 
         this.setState((prevState) => {
             return {

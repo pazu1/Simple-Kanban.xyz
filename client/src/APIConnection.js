@@ -61,7 +61,6 @@ class APIConnection {
     }
 
     async updateColsOfCards(caCards, cbCards) {
-        // TODO: map to encrypt
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -131,12 +130,18 @@ class APIConnection {
 
     // Updates names or indices, updatedColumns contain { id, title, index }
     async updateColumns(updatedColumns, project_id) {
-        // TODO: map to encrypt
+        const sendableColumns = updatedColumns.map((co) => {
+            return {
+                title: this.Enc.encrypt(co.title),
+                id: co.id,
+                index: co.index,
+            };
+        });
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                columns: updatedColumns,
+                columns: sendableColumns,
                 project_id: project_id,
             }),
         };
