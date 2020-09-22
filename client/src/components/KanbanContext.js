@@ -17,7 +17,8 @@ const KanbanContext = createContext();
 // This class works as middleware between the UI and API calls
 
 // TODO: reporting errors to user and UI feedback
-// refactor setStates to be more robust, wrap more of the function into setState
+//       decrypt strings recieved from the API
+//       refactor setStates to be more robust, wrap more of the function into setState
 
 class Column {
     constructor(
@@ -87,8 +88,14 @@ class KanbanContextProvider extends React.Component {
     }
 
     async componentDidMount() {
-        const tokenRes = await API.getToken(); // get JWT for authorization
+        // JWT authorization
+        const tokenRes = await API.getToken();
+        if (tokenRes.status === 500) {
+            this.setState({ error: 500 });
+            return;
+        }
 
+        // Encryption key
         let encryptionKey = localStorage.getItem("encryptionKey");
         if (!encryptionKey) {
             encryptionKey = Enc.generateKey();
@@ -96,18 +103,13 @@ class KanbanContextProvider extends React.Component {
         }
         Enc.key = encryptionKey;
 
-        if (tokenRes.status === 500) {
-            this.setState({ error: 500 });
-            return;
-        }
-
         // Get projects
         let resProjects = await API.getProjects();
         if (!resProjects.content) return;
         let projects = resProjects.content.map((pr) => {
             return {
                 id: pr.project_id,
-                title: pr.project_name,
+                title: Enc.decrypt(pr.project_name),
                 lastAccessed: new Date(pr.last_accessed).getTime(),
             };
         });
@@ -144,14 +146,14 @@ class KanbanContextProvider extends React.Component {
                 return;
             }
             // Load columns
-            project.columns = columnsData.map((pr) => {
+            project.columns = columnsData.map((co) => {
                 return new Column(
-                    pr.k_column_id,
-                    pr.title,
+                    co.k_column_id,
+                    Enc.decrypt(co.title),
                     [],
                     true,
-                    pr.index,
-                    pr.k_column_id
+                    co.index,
+                    co.k_column_id
                 );
             });
             // Load cards
@@ -165,7 +167,7 @@ class KanbanContextProvider extends React.Component {
                     .map((c) => {
                         return new Card(
                             c.card_id,
-                            c.description,
+                            Enc.decrypt(c.description),
                             c.k_index,
                             c.k_column_id,
                             c.k_priority

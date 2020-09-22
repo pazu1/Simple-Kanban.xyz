@@ -1,6 +1,6 @@
 import CryptoAES from "crypto-js/aes";
 import CryptoENC from "crypto-js/enc-utf8";
-import CryptoLIB from "crypto-js/lib-typedarrays";
+import CryptoCore from "crypto-js";
 
 class Encryption {
     constructor() {
@@ -14,7 +14,7 @@ class Encryption {
     }
 
     generateKey() {
-        return CryptoLIB.WordArray.random(126 / 8);
+        return CryptoCore.lib.WordArray.random(128 / 8);
     }
 
     encrypt(text) {

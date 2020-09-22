@@ -4,6 +4,8 @@ const CARDS = "cards/";
 const PROJECTS = "projects/";
 const COLUMNS = "columns/";
 
+//TODO: use .map and encrypt text in objects
+
 class APIConnection {
     constructor(Encryption) {
         const instance = this.constructor.instance;
@@ -59,6 +61,7 @@ class APIConnection {
     }
 
     async updateColsOfCards(caCards, cbCards) {
+        // TODO: map to encrypt
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -71,11 +74,13 @@ class APIConnection {
     }
 
     async updateCard(id, description = null, priority = null) {
+        let enc_description = null;
+        if (description) enc_description = this.Enc.encrypt(description);
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                description: description,
+                description: enc_description,
                 priority: priority,
             }),
         };
@@ -92,11 +97,12 @@ class APIConnection {
     }
 
     async postColumn(title, index, projectId) {
+        const enc_title = this.Enc.encrypt(title);
         const requestConf = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                title: title,
+                title: enc_title,
                 index: index,
                 project_id: projectId,
             }),
@@ -124,8 +130,8 @@ class APIConnection {
     }
 
     // Updates names or indices, updatedColumns contain { id, title, index }
-    // TODO: make sure if one of these is null it stays unmodified
     async updateColumns(updatedColumns, project_id) {
+        // TODO: map to encrypt
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -141,11 +147,12 @@ class APIConnection {
     }
 
     async postProject(title) {
+        const enc_title = this.Enc.encrypt(title);
         const requestConf = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                title: title,
+                title: enc_title,
             }),
         };
 
