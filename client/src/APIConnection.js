@@ -4,14 +4,18 @@ const CARDS = "cards/";
 const PROJECTS = "projects/";
 const COLUMNS = "columns/";
 
+//TODO: use .map and encrypt text in objects
+
 class APIConnection {
-    constructor() {
+    constructor(Encryption) {
         const instance = this.constructor.instance;
         if (instance) {
             return instance;
         }
 
         this.instance = this;
+        this.encryptionKey = null;
+        this.Enc = Encryption;
     }
 
     async getToken() {
@@ -29,11 +33,12 @@ class APIConnection {
 
     async postCard(card, project_id) {
         let { description, columnId, index, priority } = card;
+        const enc_description = this.Enc.encrypt(description);
         const requestConf = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                description: description,
+                description: enc_description,
                 index: index,
                 k_column_id: columnId,
                 priority: priority,
@@ -68,11 +73,13 @@ class APIConnection {
     }
 
     async updateCard(id, description = null, priority = null) {
+        let enc_description = null;
+        if (description) enc_description = this.Enc.encrypt(description);
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                description: description,
+                description: enc_description,
                 priority: priority,
             }),
         };
@@ -89,11 +96,12 @@ class APIConnection {
     }
 
     async postColumn(title, index, projectId) {
+        const enc_title = this.Enc.encrypt(title);
         const requestConf = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                title: title,
+                title: enc_title,
                 index: index,
                 project_id: projectId,
             }),
@@ -121,13 +129,19 @@ class APIConnection {
     }
 
     // Updates names or indices, updatedColumns contain { id, title, index }
-    // TODO: make sure if one of these is null it stays unmodified
     async updateColumns(updatedColumns, project_id) {
+        const sendableColumns = updatedColumns.map((co) => {
+            return {
+                title: this.Enc.encrypt(co.title),
+                id: co.id,
+                index: co.index,
+            };
+        });
         const requestConf = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                columns: updatedColumns,
+                columns: sendableColumns,
                 project_id: project_id,
             }),
         };
@@ -138,11 +152,12 @@ class APIConnection {
     }
 
     async postProject(title) {
+        const enc_title = this.Enc.encrypt(title);
         const requestConf = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                title: title,
+                title: enc_title,
             }),
         };
 
