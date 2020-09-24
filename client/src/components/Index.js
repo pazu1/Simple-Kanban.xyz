@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 import MdBoard from "react-ionicons/lib/MdClipboard";
 import MdTrash from "react-ionicons/lib/MdTrash";
 
-import KanbanContext from "./KanbanContext";
+import KanbanContext, { LoadingType } from "./KanbanContext";
 import PromptModal, { promptTypes } from "./PromptModal";
 
 function Index(props) {
-    const { projects, loadProject } = useContext(KanbanContext);
+    const { projects, loading, loadProject } = useContext(KanbanContext);
     const [modalActivate, setModalActivate] = useState({
         opened: false,
         item: null,
@@ -59,6 +59,8 @@ function Index(props) {
                 <div className="boardsContainer">
                     {projectComponents.length ? (
                         projectComponents
+                    ) : loading === LoadingType.PROJECTS ? (
+                        <p> Loading boards...</p>
                     ) : (
                         <p className="noBoards">No boards</p>
                     )}

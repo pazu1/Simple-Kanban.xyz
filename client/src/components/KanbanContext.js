@@ -91,42 +91,44 @@ class KanbanContextProvider extends React.Component {
     }
 
     async componentDidMount() {
-        // JWT authorization
-        const tokenRes = await API.getToken();
-        if (tokenRes.status === 500) {
-            this.setState({ error: 500 });
-            return;
-        }
+        this.setState({ loading: LoadingType.PROJECTS }, async () => {
+            // JWT authorization
+            const tokenRes = await API.getToken();
+            if (tokenRes.status === 500) {
+                this.setState({ error: 500 });
+                return;
+            }
 
-        // Encryption key
-        let encryptionKey = localStorage.getItem("encryptionKey");
-        if (!encryptionKey) {
-            encryptionKey = Enc.generateKey();
-            localStorage.setItem("encryptionKey", encryptionKey);
-        }
-        Enc.key = encryptionKey;
+            // Encryption key
+            let encryptionKey = localStorage.getItem("encryptionKey");
+            if (!encryptionKey) {
+                encryptionKey = Enc.generateKey();
+                localStorage.setItem("encryptionKey", encryptionKey);
+            }
+            Enc.key = encryptionKey;
 
-        // Get projects
-        let resProjects = await API.getProjects();
-        if (!resProjects.content) return;
-        let projects = resProjects.content.map((pr) => {
-            return {
-                id: pr.project_id,
-                title: Enc.decrypt(pr.project_name),
-                lastAccessed: new Date(pr.last_accessed).getTime(),
-            };
-        });
-        if (!projects) return;
-        this.setState({
-            projects: projects,
-        });
-        let lastProject = null;
-        let time = 0;
-        projects.forEach((pr) => {
-            if (pr.lastAccessed > time) lastProject = pr;
-        });
+            // Get projects
+            let resProjects = await API.getProjects();
+            if (!resProjects.content) return;
+            let projects = resProjects.content.map((pr) => {
+                return {
+                    id: pr.project_id,
+                    title: Enc.decrypt(pr.project_name),
+                    lastAccessed: new Date(pr.last_accessed).getTime(),
+                };
+            });
+            if (!projects) return;
+            this.setState({
+                projects: projects,
+            });
+            let lastProject = null;
+            let time = 0;
+            projects.forEach((pr) => {
+                if (pr.lastAccessed > time) lastProject = pr;
+            });
 
-        this.loadProject(lastProject.id, lastProject.title);
+            this.loadProject(lastProject.id, lastProject.title);
+        });
     }
 
     async loadProject(projectId, projectName) {

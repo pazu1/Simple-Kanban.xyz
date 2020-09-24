@@ -13,7 +13,9 @@ function BoardView(props) {
 
     return (
         <div>
-            {loading !== LoadingType.NONE ? null : (
+            {loading !== LoadingType.NONE ? (
+                <LoadingScreen />
+            ) : (
                 <DndProvider backend={HTML5Backend}>
                     <FilterContextProvider>
                         <TopBar />

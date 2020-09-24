@@ -4,9 +4,8 @@ import KanbanContext, { LoadingType } from "./KanbanContext";
 
 function LoadingScreen(props) {
     const { loading } = useContext(KanbanContext);
-    const nothingLoading = loading == LoadingType.NONE;
-    let text = "Loading boards";
-    if (loading == LoadingType.CARD) text = "Loading board";
+    const nothingLoading = loading === LoadingType.NONE;
+    let text = "Loading board";
 
     return (
         <div
