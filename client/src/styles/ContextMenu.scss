@@ -23,6 +23,9 @@
             display: block;
             float: right;
         }
+        div {
+            font-size: 12px;
+        }
         &:hover {
             background: $accent;
             color: white;

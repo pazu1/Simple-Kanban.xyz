@@ -166,7 +166,7 @@ export function MenuItem(props) {
     const selected = props.selected === true || false;
     return (
         <div className="contextMenu--option" onClick={onClick}>
-            {selected ? <li>{props.children}</li> : props.children}
+            {selected ? <div>✓⠀{props.children}</div> : props.children}
         </div>
     );
 }
