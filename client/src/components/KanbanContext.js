@@ -12,6 +12,11 @@ import Encryption from "../Encryption";
 const Enc = new Encryption();
 const API = new APIConnection(Enc);
 const KanbanContext = createContext();
+export const LoadingType = {
+    NONE: 0,
+    CARDS: 1,
+    PROJECTS: 2,
+};
 
 // This class works as middleware between the UI and API calls
 
@@ -65,7 +70,7 @@ class KanbanContextProvider extends React.Component {
             unfinishedColumns: [], // Columns that are being edited (moved around)
             unfinishedCard: null, // A card that is being edited
             synchronizing: false,
-            loading: false,
+            loading: LoadingType.NONE, // nothing being loaded
         };
         this.loadProject = this.loadProject.bind(this);
         this.changeCardPosition = this.changeCardPosition.bind(this);
@@ -125,7 +130,7 @@ class KanbanContextProvider extends React.Component {
     }
 
     async loadProject(projectId, projectName) {
-        this.setState({ loading: true }, async () => {
+        this.setState({ loading: LoadingType.CARDS }, async () => {
             const columnsRes = await API.getColumns(projectId);
             if (!columnsRes.success) return;
             const columnsData = columnsRes.content;
@@ -138,7 +143,7 @@ class KanbanContextProvider extends React.Component {
                 this.setState({
                     currentProject: project,
                     columns: [],
-                    loading: false,
+                    loading: LoadingType.NONE,
                 });
                 return;
             }
@@ -184,7 +189,7 @@ class KanbanContextProvider extends React.Component {
             this.setState({
                 currentProject: project,
                 columns: project.columns,
-                loading: false,
+                loading: LoadingType.NONE,
             });
         });
     }

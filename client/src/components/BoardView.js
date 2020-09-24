@@ -6,16 +6,14 @@ import Kanban from "./Kanban";
 import TopBar from "./TopBar";
 import LoadingScreen from "./LoadingScreen";
 import { FilterContextProvider } from "./FilterContext";
-import KanbanContext from "./KanbanContext";
+import KanbanContext, { LoadingType } from "./KanbanContext";
 
 function BoardView(props) {
     const { loading } = useContext(KanbanContext);
 
     return (
         <div>
-            {loading ? (
-                <LoadingScreen />
-            ) : (
+            {loading !== LoadingType.NONE ? null : (
                 <DndProvider backend={HTML5Backend}>
                     <FilterContextProvider>
                         <TopBar />

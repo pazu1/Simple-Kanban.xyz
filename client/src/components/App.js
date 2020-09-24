@@ -6,10 +6,12 @@ import "../styles/Index.scss";
 import Index from "./Index";
 import BoardView from "./BoardView";
 import NotificationBar from "./NotificationBar";
+import LoadingScreen from "./LoadingScreen";
 import { KanbanContextProvider } from "./KanbanContext";
 function App() {
     return (
         <KanbanContextProvider>
+            <LoadingScreen />
             <Router>
                 <Switch>
                     <Route path="/board">
