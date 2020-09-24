@@ -23,6 +23,13 @@
     }
 }
 
+.noBoards {
+    color: #bbb;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1.25em;
+}
+
 .projectAdd {
     cursor: pointer;
 }
@@ -36,6 +43,9 @@
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
+    h2 {
+        margin-bottom: 0px;
+    }
 }
 
 a {

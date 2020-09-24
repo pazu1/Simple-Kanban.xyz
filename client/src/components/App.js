@@ -5,6 +5,7 @@ import "./App.css";
 import "../styles/Index.scss";
 import Index from "./Index";
 import BoardView from "./BoardView";
+import NotificationBar from "./NotificationBar";
 import { KanbanContextProvider } from "./KanbanContext";
 function App() {
     return (
@@ -19,6 +20,7 @@ function App() {
                     </Route>
                 </Switch>
             </Router>
+            <NotificationBar />
         </KanbanContextProvider>
     );
 }

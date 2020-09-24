@@ -16,6 +16,31 @@ function Index(props) {
     const closeModal = () => {
         setModalActivate({ opened: false, item: null, type: null });
     };
+    const projectComponents = projects.map((pr, index) => {
+        return (
+            <div className="project">
+                {index === 0 ? <hr /> : null}
+                <Link
+                    to="/board"
+                    onClick={() => {
+                        loadProject(pr.id, pr.title);
+                    }}
+                >
+                    {pr.title}
+                </Link>
+                <MdTrash
+                    onClick={() => {
+                        setModalActivate({
+                            opened: true,
+                            item: pr,
+                            type: promptTypes.DELETING_PROJECT,
+                        });
+                    }}
+                />
+                <hr />
+            </div>
+        );
+    });
     console.log(projects);
 
     return (
@@ -32,31 +57,11 @@ function Index(props) {
                     <MdBoard className="boardIcon" fontSize="1em" /> My boards:
                 </h2>
                 <div className="boardsContainer">
-                    {projects.map((pr, index) => {
-                        return (
-                            <div className="project">
-                                {index === 0 ? <hr /> : null}
-                                <Link
-                                    to="/board"
-                                    onClick={() => {
-                                        loadProject(pr.id, pr.title);
-                                    }}
-                                >
-                                    {pr.title}
-                                </Link>
-                                <MdTrash
-                                    onClick={() => {
-                                        setModalActivate({
-                                            opened: true,
-                                            item: pr,
-                                            type: promptTypes.DELETING_PROJECT,
-                                        });
-                                    }}
-                                />
-                                <hr />
-                            </div>
-                        );
-                    })}
+                    {projectComponents.length ? (
+                        projectComponents
+                    ) : (
+                        <p className="noBoards">No boards</p>
+                    )}
                     <div
                         className="projectAdd"
                         onClick={() =>
