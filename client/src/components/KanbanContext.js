@@ -1,5 +1,4 @@
 import React, { createContext } from "react";
-import CryptoJS from "crypto-js";
 
 import {
     arraymove,
@@ -117,7 +116,13 @@ class KanbanContextProvider extends React.Component {
                     lastAccessed: new Date(pr.last_accessed).getTime(),
                 };
             });
-            if (!projects) return;
+            if (!projects || !projects.length) {
+                this.setState({
+                    projects: projects,
+                    loading: LoadingType.NONE, // nothing being loaded
+                });
+                return;
+            }
             this.setState({
                 projects: projects,
             });
@@ -126,7 +131,6 @@ class KanbanContextProvider extends React.Component {
             projects.forEach((pr) => {
                 if (pr.lastAccessed > time) lastProject = pr;
             });
-
             this.loadProject(lastProject.id, lastProject.title);
         });
     }
@@ -473,6 +477,18 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
+    async getAccessData() {
+        const res = await API.getToken();
+        const jwt = await res.json();
+        const encryptionKey = localStorage.getItem("encryptionKey");
+        return JSON.stringify({ jwt: jwt, key: encryptionKey });
+    }
+
+    async setAccessData(data) {
+        // set encryption key
+        // contact server and manually set jwt http token
+    }
+
     render() {
         const {
             columns,
@@ -501,11 +517,13 @@ class KanbanContextProvider extends React.Component {
             changeColumnTitle,
             addProject,
             removeProject,
+            getAccessData,
         } = this;
 
         return (
             <KanbanContext.Provider
                 value={{
+                    getAccessData,
                     error,
                     columns,
                     projects,

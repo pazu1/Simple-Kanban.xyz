@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import Modal from "react-modal";
 
 import "../styles/Modal.scss";
@@ -10,10 +10,13 @@ export const promptTypes = {
     EDITING_COLUMN: 2,
     CREATING_PROJECT: 3,
     DELETING_PROJECT: 4,
+    GETTING_COOKIE: 5,
+    SETTING_COOKIE: 6,
 };
 
 function PromptModal(props) {
     const { modalOpen, closeModal, promptType, item } = props;
+    const textareaClippable = useRef(null);
     const [editedName, setEditedName] = useState("");
     const {
         addColumn,
@@ -29,6 +32,7 @@ function PromptModal(props) {
                 <textarea
                     autoFocus
                     className="cardTextArea"
+                    maxLength="30"
                     type="text"
                     onChange={(e) => setEditedName(e.target.value)}
                     value={editedName}
@@ -83,6 +87,7 @@ function PromptModal(props) {
                     autoFocus
                     className="cardTextArea"
                     type="text"
+                    maxLength="30"
                     onChange={(e) => setEditedName(e.target.value)}
                     value={editedName}
                 />
@@ -105,6 +110,7 @@ function PromptModal(props) {
                 <textarea
                     autoFocus
                     className="cardTextArea"
+                    maxLength="30"
                     type="text"
                     onChange={(e) => setEditedName(e.target.value)}
                     value={editedName}
@@ -139,6 +145,39 @@ function PromptModal(props) {
                     className="mButton--green"
                 >
                     Confirm
+                </button>
+            </>
+        ) : promptType === promptTypes.GETTING_COOKIE ? (
+            <>
+                <p>
+                    Here is your access information. You can copy this text and
+                    import it in another browser session to get access to your
+                    boards.
+                </p>
+                <textarea
+                    ref={textareaClippable}
+                    autoFocus
+                    className="cookieTextArea"
+                    readOnly
+                    value={item}
+                />
+                <button
+                    onClick={() => {
+                        textareaClippable.current.select();
+                        document.execCommand("copy");
+                        closeModal();
+                    }}
+                    className="mButton--green"
+                >
+                    Copy to clipboard
+                </button>
+                <button
+                    onClick={() => {
+                        closeModal();
+                    }}
+                    className="mButton--red"
+                >
+                    Cancel
                 </button>
             </>
         ) : null;

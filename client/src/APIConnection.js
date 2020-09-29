@@ -22,6 +22,8 @@ class APIConnection {
         return fetch(API_URL + JWT);
     }
 
+    async setToken(value) {}
+
     async getProjects() {
         return fetch(API_URL + PROJECTS).then((res) => res.json());
     }
