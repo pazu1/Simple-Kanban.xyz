@@ -77,6 +77,7 @@ function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
                     className="cardTextArea"
                     type="text"
                     onChange={(e) => setEditFormDesc(e.target.value)}
+                    maxLength="120"
                     value={editFormDesc}
                 />
             </span>

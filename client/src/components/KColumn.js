@@ -85,7 +85,7 @@ function KColumn({ column, cmActivate, editColumns }) {
     });
 
     const columnTitle = (
-        <div>
+        <div className="columnTitle">
             {columnName.toUpperCase()}
             <button
                 style={{ background: "transparent", padding: 0 }}

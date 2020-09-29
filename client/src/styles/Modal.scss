@@ -7,7 +7,7 @@
     right: auto;
     bottom: auto;
     width: 320px;
-    height: 186px;
+    min-height: 186px;
     background-color: $bgwhite;
     outline: none;
     z-index: 10;
@@ -25,6 +25,11 @@
     bottom: 0;
     background-color: rgba(0,0,0,0.6);
     z-index: 10
+}
+
+.cookieTextArea {
+    width: 80%;
+    resize: none;
 }
 
 .mButton {

@@ -25,12 +25,15 @@ class Response {
 }
 
 router.get("/jwt", async (req, res) => {
+    const { importedToken } = req.body;
+    if (importedToken) return; // TODO: send the user cookie with the imported token
     // Handle on user already has access token
     if (req.cookies.token) {
         console.log("Already has token!!");
-        return res.send(
-            "Requested token cookie, but the client already has one."
-        );
+        //return res.send(
+        //    "Requested token cookie, but the client already has one."
+        //);
+        return res.json(req.cookies.token);
     }
 
     // User first time access -> add user to database
@@ -82,7 +85,6 @@ router.get("/projects", (req, res) => {
             `,
             [user_id]
         );
-        if (!allProjects.rows.length) throw new Error("No projects found.");
         return res.json(
             new Response(true, "Projects retrieved.", allProjects.rows)
         );

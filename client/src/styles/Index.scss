@@ -5,11 +5,41 @@
     color: $accent;
     fill: $accent;
 }
+.optionsContainer {
+    position: fixed;
+    right: 10px;
+    top: 6px;
+    display: flex;
+    flex-direction: column;
+    .togglebtn {
+        width: 66px;
+        margin-left: auto;
+        vertical-align: middle;
+        svg {
+            vertical-align: middle;
+        }
+    }
+    button {
+        margin-left: auto;
+        background: transparent;
+        text-align: center;
+        padding-bottom: 4px;
+    }
+    .bIco {
+        margin-bottom: -6px;
+        padding-left: 4px;
+    }
+    .optionsContent {
+        display: flex;
+        flex-direction: column;
+    }
+}
 .boardsContainer {
     display: flex;
     flex-direction: column;
     width: 260px;
     justify-content: center;
+    overflow-wrap: break-word;
     svg {
         height: 20px;
         fill: $accent;

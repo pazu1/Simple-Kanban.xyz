@@ -9,7 +9,7 @@ function NotificationBar() {
         <div>
             {error === 500 ? (
                 <div className="notificationBar">
-                    Internal Server Error. Couldn't connect to server.
+                    {error} Internal Server Error.
                 </div>
             ) : null}
         </div>
