@@ -48,7 +48,11 @@ function Options(props) {
                         className="bIco"
                     />
                 </button>
-                <a href="https://github.com/pazu1/Kanban-Board" target="_blank">
+                <a
+                    href="https://github.com/pazu1/Kanban-Board"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
                     <button>
                         View on GitHub <LogoGithub className="bIco" />
                     </button>
