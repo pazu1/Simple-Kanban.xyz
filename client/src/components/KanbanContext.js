@@ -484,9 +484,23 @@ class KanbanContextProvider extends React.Component {
         return JSON.stringify({ jwt: jwt, key: encryptionKey });
     }
 
-    async setAccessData(data) {
-        // set encryption key
-        // contact server and manually set jwt http token
+    async setAccessData(textData) {
+        try {
+            const data = JSON.parse(textData);
+            // contact server and manually set jwt http token
+            const res = await API.setToken(data.jwt);
+            console.log(res, data);
+            if (res.success) {
+                // set encryption key
+                localStorage.setItem("encryptionKey", data.key);
+                window.location.reload(false); // refresh page
+            } else {
+                throw Error("Could not set access token.");
+            }
+        } catch (err) {
+            alert(err.message);
+            return false;
+        }
     }
 
     render() {
@@ -518,12 +532,14 @@ class KanbanContextProvider extends React.Component {
             addProject,
             removeProject,
             getAccessData,
+            setAccessData,
         } = this;
 
         return (
             <KanbanContext.Provider
                 value={{
                     getAccessData,
+                    setAccessData,
                     error,
                     columns,
                     projects,

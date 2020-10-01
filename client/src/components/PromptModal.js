@@ -17,13 +17,14 @@ export const promptTypes = {
 function PromptModal(props) {
     const { modalOpen, closeModal, promptType, item } = props;
     const textareaClippable = useRef(null);
-    const [editedName, setEditedName] = useState("");
+    const [editedText, setEditedText] = useState("");
     const {
         addColumn,
         removeColumn,
         changeColumnTitle,
         addProject,
         removeProject,
+        setAccessData,
     } = useContext(KanbanContext);
     const content =
         promptType === promptTypes.ADDING_COLUMN ? ( // TODO: validate user input
@@ -34,8 +35,8 @@ function PromptModal(props) {
                     className="cardTextArea"
                     maxLength="30"
                     type="text"
-                    onChange={(e) => setEditedName(e.target.value)}
-                    value={editedName}
+                    onChange={(e) => setEditedText(e.target.value)}
+                    value={editedText}
                 />
                 <div>
                     <input
@@ -53,7 +54,7 @@ function PromptModal(props) {
                 </button>
                 <button
                     onClick={() => {
-                        addColumn(editedName);
+                        addColumn(editedText);
                         closeModal();
                     }}
                     className="mButton--green"
@@ -88,15 +89,15 @@ function PromptModal(props) {
                     className="cardTextArea"
                     type="text"
                     maxLength="30"
-                    onChange={(e) => setEditedName(e.target.value)}
-                    value={editedName}
+                    onChange={(e) => setEditedText(e.target.value)}
+                    value={editedText}
                 />
                 <button className="mButton--red" onClick={() => closeModal()}>
                     Cancel
                 </button>
                 <button
                     onClick={() => {
-                        changeColumnTitle(item.id, editedName);
+                        changeColumnTitle(item.id, editedText);
                         closeModal();
                     }}
                     className="mButton--green"
@@ -112,15 +113,15 @@ function PromptModal(props) {
                     className="cardTextArea"
                     maxLength="30"
                     type="text"
-                    onChange={(e) => setEditedName(e.target.value)}
-                    value={editedName}
+                    onChange={(e) => setEditedText(e.target.value)}
+                    value={editedText}
                 />
                 <button className="mButton--red" onClick={() => closeModal()}>
                     Cancel
                 </button>
                 <button
                     onClick={() => {
-                        addProject(editedName);
+                        addProject(editedText);
                         closeModal();
                     }}
                     className="mButton--green"
@@ -180,10 +181,44 @@ function PromptModal(props) {
                     Cancel
                 </button>
             </>
+        ) : promptType === promptTypes.SETTING_COOKIE ? (
+            <>
+                <p>
+                    Paste your access information here.
+                    <br />
+                    <strong>
+                        Beware, data in your current browser session will be
+                        lost.
+                    </strong>
+                </p>
+                <textarea
+                    autoFocus
+                    className="cookieTextArea"
+                    value={editedText}
+                    onChange={(e) => setEditedText(e.target.value)}
+                />
+                <button
+                    onClick={() => {
+                        setAccessData(editedText);
+                        closeModal();
+                    }}
+                    className="mButton--green"
+                >
+                    Continue
+                </button>
+                <button
+                    onClick={() => {
+                        closeModal();
+                    }}
+                    className="mButton--red"
+                >
+                    Cancel
+                </button>
+            </>
         ) : null;
 
     useEffect(() => {
-        setEditedName("");
+        setEditedText("");
     }, [promptType, modalOpen]);
 
     return (

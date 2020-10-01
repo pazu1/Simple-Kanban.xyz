@@ -24,9 +24,20 @@ class Response {
     }
 }
 
+router.post("/jwt", async (req, res) => {
+    useErrorHandler(async () => {
+        const { importedToken } = req.body;
+        console.log(req.body);
+        res.cookie("token", importedToken, {
+            httpOnly: true,
+            expires: new Date(253402300000000),
+            secure: true,
+        });
+        return res.json(new Response(true, "JWT cookie set manually.", null));
+    }, res)();
+});
+
 router.get("/jwt", async (req, res) => {
-    const { importedToken } = req.body;
-    if (importedToken) return; // TODO: send the user cookie with the imported token
     // Handle on user already has access token
     if (req.cookies.token) {
         console.log("Already has token!!");

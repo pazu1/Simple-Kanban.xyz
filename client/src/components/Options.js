@@ -33,16 +33,26 @@ function Options(props) {
                 >
                     Export access data <MdCodeDownload className="bIco" />
                 </button>
-                <button>
+                <button
+                    onClick={() => {
+                        props.setModalActivate({
+                            opened: true,
+                            item: null,
+                            type: promptTypes.SETTING_COOKIE,
+                        });
+                    }}
+                >
                     Import access data{" "}
                     <MdCodeDownload
                         style={{ transform: "scale(1,-1)" }}
                         className="bIco"
                     />
                 </button>
-                <button>
-                    View on GitHub <LogoGithub className="bIco" />
-                </button>
+                <a href="https://github.com/pazu1/Kanban-Board" target="_blank">
+                    <button>
+                        View on GitHub <LogoGithub className="bIco" />
+                    </button>
+                </a>
             </div>
         </div>
     );

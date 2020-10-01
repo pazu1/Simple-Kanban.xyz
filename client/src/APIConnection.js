@@ -22,7 +22,17 @@ class APIConnection {
         return fetch(API_URL + JWT);
     }
 
-    async setToken(value) {}
+    async setToken(value) {
+        const requestConf = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                importedToken: value,
+            }),
+        };
+        console.log("setting");
+        return fetch(API_URL + JWT, requestConf).then((res) => res.json());
+    }
 
     async getProjects() {
         return fetch(API_URL + PROJECTS).then((res) => res.json());
