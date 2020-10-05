@@ -14,7 +14,7 @@ class Encryption {
     }
 
     generateKey() {
-        return CryptoCore.lib.WordArray.random(128 / 8);
+        return CryptoCore.lib.WordArray.random(128 / 8).toString();
     }
 
     encrypt(text) {

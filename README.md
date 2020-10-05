@@ -1,3 +1,21 @@
-# knbn
+# Simple-Kanban.xyz
 
-Full stack kanban board project.
+A web-application for creating kanban boards to manage projects.
+
+## About
+
+Fair to say this could be described as a bare-bones [trello](https://trello.com/)-clone.
+
+The point of making this web application was for me to teach myself more about full-stack developement. 
+But the site does work and you can totally use it. Just keep in mind that no warranty is provided.
+
+Unlike other similar sites, Simple-Kanban requires no signing in to use. 
+Authorization is done by storing user information in a JSON Web Token cookie.
+
+Text is encrypted on the client side, so no essential information about your projects is ever stored in plain-text on the server.
+
+## Stack
+
+### Client
+
+### Backend
