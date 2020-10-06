@@ -9,8 +9,6 @@ const path = require("path");
 const db = require("../userdata/db");
 const pool = db.pool;
 
-// TODO: test API for errors, make sure all cases are covered
-
 //
 // Authorization
 //
@@ -168,11 +166,9 @@ router.put("/cards/", (req, res) => {
                     WHERE user_id = $1
                 )
                 `;
-        return pool
-            .query(update, [user_id]) // TODO: use this pattern: return a promise
-            .then(() => {
-                return res.json(new Response(true, "Columns updated."));
-            });
+        return pool.query(update, [user_id]).then(() => {
+            return res.json(new Response(true, "Columns updated."));
+        });
     }, res)();
 });
 
@@ -213,7 +209,6 @@ router.post("/cards", (req, res) => {
         } = req.body;
 
         const canAddCard = await pool.query(
-            // TODO: make this into one single query
             `
             SELECT * FROM project pr 
             WHERE pr.user_id = $1 AND pr.project_id = $2 
@@ -297,12 +292,20 @@ router.get("/projects/columns/:project_id", (req, res) => {
 });
 
 // Add a new column
-// TODO: check that user is authorized to add column to project
 router.post("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
         const { title, index, project_id } = req.body;
-
+        const canAddCol = await pool.query(
+            `
+            SELECT * FROM project pr 
+            WHERE pr.user_id = $1 AND pr.project_id = $2 
+            `,
+            [user_id, project_id]
+        );
+        if (!canAddCol.rows.length) {
+            throw new Error("Could not add column.");
+        }
         const newColumn = await pool.query(
             `
                 INSERT INTO k_column (title, user_id, index, project_id)
@@ -318,7 +321,7 @@ router.post("/projects/columns", (req, res) => {
 //  update column indices and names
 router.put("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
-        const { user_id } = req.user; // TODO refactor this to update indices and or names
+        const { user_id } = req.user;
         // new post and delete methods for other operations
         const { columns, project_id } = req.body;
         console.log(columns);
