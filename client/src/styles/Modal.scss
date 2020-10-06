@@ -1,13 +1,14 @@
 @import "./_theme.scss";
 
 .modal {
+    display: flex;
+    flex-direction: column;
     position: absolute;
     top: 40%;
     left: 40%;
     right: auto;
     bottom: auto;
     width: 320px;
-    min-height: 186px;
     background-color: $bgwhite;
     outline: none;
     z-index: 10;
@@ -29,7 +30,15 @@
 
 .cookieTextArea {
     width: 80%;
+    margin-left: auto;
+    margin-right: auto;
     resize: none;
+}
+
+.optionsButtonPair {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 .mButton {
@@ -37,19 +46,15 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
     font-size: 16px;
     color: $bggray;
-    bottom: 0px;
+    margin: 6px;
 
     &--red {
         @extend .mButton;
         background: $red;
-        position:absolute;
-        left: 10px;
     }
     &--green {
         @extend .mButton;
         background: $green;
-        position:absolute;
-        right: 10px;
     }
 }
 

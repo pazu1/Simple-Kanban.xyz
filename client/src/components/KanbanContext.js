@@ -19,9 +19,6 @@ export const LoadingType = {
 
 // This class works as middleware between the UI and API calls
 
-// TODO: reporting errors to user and UI feedback
-//       refactor setStates to be more robust, wrap more of the function into setState
-
 class Column {
     constructor(
         id,

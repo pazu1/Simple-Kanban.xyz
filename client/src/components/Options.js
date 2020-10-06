@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import MdSettings from "react-ionicons/lib/MdSettings";
+import MdMenu from "react-ionicons/lib/MdMenu";
 import MdArrowDropdown from "react-ionicons/lib/MdArrowDropdown";
 import MdArrowDropup from "react-ionicons/lib/MdArrowDropup";
 import MdCodeDownload from "react-ionicons/lib/MdCodeDownload";
@@ -14,7 +14,7 @@ function Options(props) {
     return (
         <div className="optionsContainer">
             <button onClick={() => setVisible(!visible)} className="togglebtn">
-                <MdSettings />
+                <MdMenu />
                 {visible ? <MdArrowDropup /> : <MdArrowDropdown />}
             </button>
             <div
