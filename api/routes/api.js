@@ -3,6 +3,8 @@ const router = express.Router();
 const jwt = require("express-jwt");
 const jsonwebtoken = require("jsonwebtoken");
 const pgp = require("pg-promise")();
+const fs = require("fs");
+const path = require("path");
 
 const db = require("../userdata/db");
 const pool = db.pool;
@@ -13,8 +15,9 @@ const pool = db.pool;
 // Authorization
 //
 
-// This is to be a strong password that is only stored in the server
-const jwtSecret = "secret";
+const jwtSecret = fs
+    .readFileSync(path.resolve(__dirname, "../jwt-key.txt"), "utf8")
+    .replace(/^\s+|\s+$/g, "");
 
 class Response {
     constructor(success = false, message, content = null) {
