@@ -17,6 +17,19 @@
     p {
         margin: 8px 8px;
     }
+    textarea {
+        width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 6px;
+        margin-top: 4px;
+    }
+    .cardTextArea{
+        text-align: center;
+    }
+    .cookieTextArea {
+        resize: none;
+    }
 }
 .overlay {
     position: fixed;
@@ -26,13 +39,6 @@
     bottom: 0;
     background-color: rgba(0,0,0,0.6);
     z-index: 10
-}
-
-.cookieTextArea {
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-    resize: none;
 }
 
 .optionsButtonPair {
