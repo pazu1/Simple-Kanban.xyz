@@ -16,7 +16,6 @@ function KColumn({ column, cmActivate, editColumns }) {
         addCard,
         cancelCardEdit,
         unfinishedCard,
-        columns,
         changeCardPosition,
         moveColumn,
     } = useContext(KanbanContext);

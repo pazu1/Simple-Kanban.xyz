@@ -19,6 +19,7 @@ function PromptModal(props) {
     const { modalOpen, closeModal, promptType, item } = props;
     const textareaClippable = useRef(null);
     const [editedText, setEditedText] = useState("");
+    const [checkboxValue, setCheckboxValue] = useState(true);
     const {
         addColumn,
         removeColumn,
@@ -39,17 +40,6 @@ function PromptModal(props) {
                     onChange={(e) => setEditedText(e.target.value)}
                     value={editedText}
                 />
-                <div>
-                    <input
-                        type="checkbox"
-                        id="doneCol"
-                        name="doneCol"
-                        value="checked"
-                    />
-                    <label for="doneCol">
-                        Mark cards in this column as done
-                    </label>
-                </div>
                 <OptionsButtonPair
                     onClose={() => closeModal()}
                     onConfirm={() => {
@@ -102,10 +92,25 @@ function PromptModal(props) {
                     onChange={(e) => setEditedText(e.target.value)}
                     value={editedText}
                 />
+                <div>
+                    <input
+                        type="checkbox"
+                        id="initTemplate"
+                        name="initTemplate"
+                        value="checked"
+                        checked={checkboxValue}
+                        onChange={() => {
+                            setCheckboxValue(!checkboxValue);
+                        }}
+                    />
+                    <label for="initTemplate">
+                        Initialize board with template columns.
+                    </label>
+                </div>
                 <OptionsButtonPair
                     onClose={() => closeModal()}
                     onConfirm={() => {
-                        addProject(editedText);
+                        addProject(editedText, checkboxValue);
                         closeModal();
                     }}
                 />
@@ -177,6 +182,8 @@ function PromptModal(props) {
 
     useEffect(() => {
         setEditedText("");
+        if (promptType === promptTypes.CREATING_PROJECT) setCheckboxValue(true);
+        else setCheckboxValue(false);
     }, [promptType, modalOpen]);
 
     return (

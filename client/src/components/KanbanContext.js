@@ -33,7 +33,6 @@ class Column {
         this.cards = cards;
         this.finished = finished;
         this.index = index;
-        this.markDone = markDone;
     }
 }
 // This will correspond with the ones stored in the database
@@ -60,7 +59,7 @@ class KanbanContextProvider extends React.Component {
         super();
         this.state = {
             error: null,
-            columns: [],
+            columns: [], // for the current project
             projects: [],
             currentProject: null,
             unfinishedColumns: [], // Columns that are being edited (moved around)
@@ -188,7 +187,6 @@ class KanbanContextProvider extends React.Component {
             });
 
             if (!resCards) return;
-
             this.setState({
                 currentProject: project,
                 columns: project.columns,
@@ -450,8 +448,8 @@ class KanbanContextProvider extends React.Component {
         });
     }
 
-    async addProject(title) {
-        let res = await API.postProject(title);
+    async addProject(title, withTemplates = false) {
+        let res = await API.postProject(title, withTemplates); // TODO: create templates in API here too
         if (!res.success) return;
         const id = res.content.project_id;
         this.setState((prevState) => {

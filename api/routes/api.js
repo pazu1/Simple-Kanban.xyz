@@ -373,10 +373,11 @@ router.delete("/projects/columns", (req, res) => {
     }, res)();
 });
 
+// add a project
 router.post("/projects/", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
-        const { title } = req.body;
+        const { title, templates } = req.body;
 
         const newProject = await pool.query(
             `
@@ -386,6 +387,27 @@ router.post("/projects/", (req, res) => {
             `,
             [title, user_id]
         );
+        console.log(templates);
+        if (templates.length !== 0) {
+            const projectId = newProject.rows[0].project_id;
+            await pool.query(
+                `
+                    INSERT INTO k_column (title, user_id, index, project_id)
+                    VALUES 
+                    (
+                        $3, $1, 0, $2
+                    ),
+                    (
+                        $4, $1, 1, $2
+                    ),
+                    (
+                        $5, $1, 2, $2
+                    );
+                `,
+                [user_id, projectId, templates[0], templates[1], templates[2]]
+            );
+        }
+
         return res.json(
             new Response(true, "Project added.", newProject.rows[0])
         );
