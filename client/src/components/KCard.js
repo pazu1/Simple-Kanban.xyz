@@ -6,10 +6,12 @@ import MdClose from "react-ionicons/lib/MdClose";
 
 import { ItemTypes, PriorityLevels } from "../utils/const";
 import KanbanContext from "./KanbanContext";
+import SettingsContext from "./SettingsContext";
 
 function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
     const { finishCardEdit, cancelCardEdit } = useContext(KanbanContext);
-    const { priority, description, id, index, columnId, columnTitle } = card;
+    const { hidePriorityLabels } = useContext(SettingsContext);
+    const { priority, description, id, index, columnId } = card;
     const ref = useRef(null);
     const moreBtnRef = useRef(null);
     const priLabelRef = useRef(null);
@@ -88,15 +90,17 @@ function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
         drag(drop(ref));
         displayContents = (
             <>
-                <div
-                    ref={priLabelRef}
-                    className={`priorityLabel--${priorityText}`}
-                    onClick={() => {
-                        cmActivate(priLabelRef.current, card, 0);
-                    }}
-                >
-                    {priorityText}
-                </div>
+                {hidePriorityLabels ? null : (
+                    <div
+                        ref={priLabelRef}
+                        className={`priorityLabel--${priorityText}`}
+                        onClick={() => {
+                            cmActivate(priLabelRef.current, card, 0);
+                        }}
+                    >
+                        {priorityText}
+                    </div>
+                )}
                 <button
                     ref={moreBtnRef}
                     onClick={(e) => {
@@ -104,7 +108,7 @@ function KCard({ card, setDisableDrop, setDropIndex, cmActivate }) {
                     }}
                     className="cardMenuBtn"
                 >
-                    <MdMore className="ionIcon" fontSize={16} />
+                    <MdMore className="ionIcon" fontSize="16px" />
                 </button>
                 <span>{description}</span>
             </>

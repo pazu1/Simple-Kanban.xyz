@@ -108,11 +108,11 @@ function Kanban(props) {
     let columnObjects = null;
     if (unfinishedColumns.length) columnObjects = unfinishedColumns;
     else columnObjects = columns;
-    let columnComponents = columnObjects.sort(sortByIndex).map((col) => {
+    let columnComponents = columnObjects.sort(sortByIndex).map((col, i) => {
         return (
             <KColumn
                 editColumns={editColumns}
-                key={col.title}
+                key={col.title + i}
                 column={col}
                 cmActivate={activateContextMenu}
             />

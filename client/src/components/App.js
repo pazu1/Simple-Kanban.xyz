@@ -7,13 +7,16 @@ import Index from "./Index";
 import BoardView from "./BoardView";
 import NotificationBar from "./NotificationBar";
 import { KanbanContextProvider } from "./KanbanContext";
+import { SettingsContextProvider } from "./SettingsContext";
 function App() {
     return (
         <KanbanContextProvider>
             <Router>
                 <Switch>
                     <Route path="/board">
-                        <BoardView />
+                        <SettingsContextProvider>
+                            <BoardView />
+                        </SettingsContextProvider>
                     </Route>
                     <Route path="/">
                         <Index />

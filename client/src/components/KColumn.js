@@ -7,7 +7,7 @@ import MdMore from "react-ionicons/lib/MdMore";
 import KCard from "./KCard";
 import { ItemTypes } from "../utils/const";
 import KanbanContext from "./KanbanContext";
-import FilterContext from "./FilterContext";
+import SettingsContext from "./SettingsContext";
 import "../styles/Kanban.scss";
 
 function KColumn({ column, cmActivate, editColumns }) {
@@ -20,7 +20,7 @@ function KColumn({ column, cmActivate, editColumns }) {
         moveColumn,
     } = useContext(KanbanContext);
     const cmRefColumn = useRef(null);
-    const { filter } = useContext(FilterContext);
+    const { filter } = useContext(SettingsContext);
     const [dropIndex, setDropIndex] = useState(-1);
     const [disableDrop, setDisableDrop] = useState(false);
     const [{ isOver }, drop] = useDrop({

@@ -5,7 +5,6 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import Kanban from "./Kanban";
 import TopBar from "./TopBar";
 import LoadingScreen from "./LoadingScreen";
-import { FilterContextProvider } from "./FilterContext";
 import KanbanContext, { LoadingType } from "./KanbanContext";
 
 function BoardView(props) {
@@ -17,10 +16,8 @@ function BoardView(props) {
                 <LoadingScreen />
             ) : (
                 <DndProvider backend={HTML5Backend}>
-                    <FilterContextProvider>
-                        <TopBar />
-                        <Kanban />
-                    </FilterContextProvider>
+                    <TopBar />
+                    <Kanban />
                 </DndProvider>
             )}
         </div>
