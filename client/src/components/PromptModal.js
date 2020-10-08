@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import Modal from "react-modal";
+import OptionsButtonPair from "./OptionsButtonPair";
 
 import "../styles/Modal.scss";
 import KanbanContext from "./KanbanContext";
@@ -18,6 +19,7 @@ function PromptModal(props) {
     const { modalOpen, closeModal, promptType, item } = props;
     const textareaClippable = useRef(null);
     const [editedText, setEditedText] = useState("");
+    const [checkboxValue, setCheckboxValue] = useState(true);
     const {
         addColumn,
         removeColumn,
@@ -27,7 +29,7 @@ function PromptModal(props) {
         setAccessData,
     } = useContext(KanbanContext);
     const content =
-        promptType === promptTypes.ADDING_COLUMN ? ( // TODO: validate user input
+        promptType === promptTypes.ADDING_COLUMN ? (
             <>
                 <p>Enter new column name:</p>
                 <textarea
@@ -38,29 +40,13 @@ function PromptModal(props) {
                     onChange={(e) => setEditedText(e.target.value)}
                     value={editedText}
                 />
-                <div>
-                    <input
-                        type="checkbox"
-                        id="doneCol"
-                        name="doneCol"
-                        value="checked"
-                    />
-                    <label for="doneCol">
-                        Mark cards in this column as done
-                    </label>
-                </div>
-                <button className="mButton--red" onClick={() => closeModal()}>
-                    Cancel
-                </button>
-                <button
-                    onClick={() => {
+                <OptionsButtonPair
+                    onClose={() => closeModal()}
+                    onConfirm={() => {
                         addColumn(editedText);
                         closeModal();
                     }}
-                    className="mButton--green"
-                >
-                    Confirm
-                </button>
+                />
             </>
         ) : promptType === promptTypes.DELETING_COLUMN ? (
             <>
@@ -68,18 +54,13 @@ function PromptModal(props) {
                     Are you sure you want to delete column <b>{item.title}</b>?
                     All cards inside the column will also be deleted.
                 </p>
-                <button className="mButton--red" onClick={() => closeModal()}>
-                    Cancel
-                </button>
-                <button
-                    onClick={() => {
+                <OptionsButtonPair
+                    onClose={() => closeModal()}
+                    onConfirm={() => {
                         removeColumn(item.id);
                         closeModal();
                     }}
-                    className="mButton--green"
-                >
-                    Confirm
-                </button>
+                />
             </>
         ) : promptType === promptTypes.EDITING_COLUMN ? (
             <>
@@ -92,18 +73,13 @@ function PromptModal(props) {
                     onChange={(e) => setEditedText(e.target.value)}
                     value={editedText}
                 />
-                <button className="mButton--red" onClick={() => closeModal()}>
-                    Cancel
-                </button>
-                <button
-                    onClick={() => {
+                <OptionsButtonPair
+                    onClose={() => closeModal()}
+                    onConfirm={() => {
                         changeColumnTitle(item.id, editedText);
                         closeModal();
                     }}
-                    className="mButton--green"
-                >
-                    Confirm
-                </button>
+                />
             </>
         ) : promptType === promptTypes.CREATING_PROJECT ? (
             <>
@@ -116,18 +92,28 @@ function PromptModal(props) {
                     onChange={(e) => setEditedText(e.target.value)}
                     value={editedText}
                 />
-                <button className="mButton--red" onClick={() => closeModal()}>
-                    Cancel
-                </button>
-                <button
-                    onClick={() => {
-                        addProject(editedText);
+                <div>
+                    <input
+                        type="checkbox"
+                        id="initTemplate"
+                        name="initTemplate"
+                        value="checked"
+                        checked={checkboxValue}
+                        onChange={() => {
+                            setCheckboxValue(!checkboxValue);
+                        }}
+                    />
+                    <label for="initTemplate">
+                        Initialize board with template columns.
+                    </label>
+                </div>
+                <OptionsButtonPair
+                    onClose={() => closeModal()}
+                    onConfirm={() => {
+                        addProject(editedText, checkboxValue);
                         closeModal();
                     }}
-                    className="mButton--green"
-                >
-                    Confirm
-                </button>
+                />
             </>
         ) : promptType === promptTypes.DELETING_PROJECT ? (
             <>
@@ -135,18 +121,13 @@ function PromptModal(props) {
                     Are you sure you want to permanently delete project{" "}
                     <b>{item.title}</b>?
                 </p>
-                <button className="mButton--red" onClick={() => closeModal()}>
-                    Cancel
-                </button>
-                <button
-                    onClick={() => {
+                <OptionsButtonPair
+                    onClose={() => closeModal()}
+                    onConfirm={() => {
                         removeProject(item.id);
                         closeModal();
                     }}
-                    className="mButton--green"
-                >
-                    Confirm
-                </button>
+                />
             </>
         ) : promptType === promptTypes.GETTING_COOKIE ? (
             <>
@@ -162,24 +143,15 @@ function PromptModal(props) {
                     readOnly
                     value={item}
                 />
-                <button
-                    onClick={() => {
+                <OptionsButtonPair
+                    onClose={() => closeModal()}
+                    confirmTxt="Copy to clipboard"
+                    onConfirm={() => {
                         textareaClippable.current.select();
                         document.execCommand("copy");
                         closeModal();
                     }}
-                    className="mButton--green"
-                >
-                    Copy to clipboard
-                </button>
-                <button
-                    onClick={() => {
-                        closeModal();
-                    }}
-                    className="mButton--red"
-                >
-                    Cancel
-                </button>
+                />
             </>
         ) : promptType === promptTypes.SETTING_COOKIE ? (
             <>
@@ -197,28 +169,21 @@ function PromptModal(props) {
                     value={editedText}
                     onChange={(e) => setEditedText(e.target.value)}
                 />
-                <button
-                    onClick={() => {
+                <OptionsButtonPair
+                    onClose={() => closeModal()}
+                    confirmTxt="Continue"
+                    onConfirm={() => {
                         setAccessData(editedText);
                         closeModal();
                     }}
-                    className="mButton--green"
-                >
-                    Continue
-                </button>
-                <button
-                    onClick={() => {
-                        closeModal();
-                    }}
-                    className="mButton--red"
-                >
-                    Cancel
-                </button>
+                />
             </>
         ) : null;
 
     useEffect(() => {
         setEditedText("");
+        if (promptType === promptTypes.CREATING_PROJECT) setCheckboxValue(true);
+        else setCheckboxValue(false);
     }, [promptType, modalOpen]);
 
     return (

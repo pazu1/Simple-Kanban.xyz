@@ -3,18 +3,19 @@ const router = express.Router();
 const jwt = require("express-jwt");
 const jsonwebtoken = require("jsonwebtoken");
 const pgp = require("pg-promise")();
+const fs = require("fs");
+const path = require("path");
 
 const db = require("../userdata/db");
 const pool = db.pool;
-
-// TODO: test API for errors, make sure all cases are covered
 
 //
 // Authorization
 //
 
-// This is to be a strong password that is only stored in the server
-const jwtSecret = "secret";
+const jwtSecret = fs
+    .readFileSync(path.resolve(__dirname, "../jwt-key.txt"), "utf8")
+    .replace(/^\s+|\s+$/g, "");
 
 class Response {
     constructor(success = false, message, content = null) {
@@ -165,11 +166,9 @@ router.put("/cards/", (req, res) => {
                     WHERE user_id = $1
                 )
                 `;
-        return pool
-            .query(update, [user_id]) // TODO: use this pattern: return a promise
-            .then(() => {
-                return res.json(new Response(true, "Columns updated."));
-            });
+        return pool.query(update, [user_id]).then(() => {
+            return res.json(new Response(true, "Columns updated."));
+        });
     }, res)();
 });
 
@@ -210,7 +209,6 @@ router.post("/cards", (req, res) => {
         } = req.body;
 
         const canAddCard = await pool.query(
-            // TODO: make this into one single query
             `
             SELECT * FROM project pr 
             WHERE pr.user_id = $1 AND pr.project_id = $2 
@@ -294,12 +292,20 @@ router.get("/projects/columns/:project_id", (req, res) => {
 });
 
 // Add a new column
-// TODO: check that user is authorized to add column to project
 router.post("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
         const { title, index, project_id } = req.body;
-
+        const canAddCol = await pool.query(
+            `
+            SELECT * FROM project pr 
+            WHERE pr.user_id = $1 AND pr.project_id = $2 
+            `,
+            [user_id, project_id]
+        );
+        if (!canAddCol.rows.length) {
+            throw new Error("Could not add column.");
+        }
         const newColumn = await pool.query(
             `
                 INSERT INTO k_column (title, user_id, index, project_id)
@@ -315,7 +321,7 @@ router.post("/projects/columns", (req, res) => {
 //  update column indices and names
 router.put("/projects/columns", (req, res) => {
     useErrorHandler(async () => {
-        const { user_id } = req.user; // TODO refactor this to update indices and or names
+        const { user_id } = req.user;
         // new post and delete methods for other operations
         const { columns, project_id } = req.body;
         console.log(columns);
@@ -367,10 +373,11 @@ router.delete("/projects/columns", (req, res) => {
     }, res)();
 });
 
+// add a project
 router.post("/projects/", (req, res) => {
     useErrorHandler(async () => {
         const { user_id } = req.user;
-        const { title } = req.body;
+        const { title, templates } = req.body;
 
         const newProject = await pool.query(
             `
@@ -380,6 +387,27 @@ router.post("/projects/", (req, res) => {
             `,
             [title, user_id]
         );
+        console.log(templates);
+        if (templates.length !== 0) {
+            const projectId = newProject.rows[0].project_id;
+            await pool.query(
+                `
+                    INSERT INTO k_column (title, user_id, index, project_id)
+                    VALUES 
+                    (
+                        $3, $1, 0, $2
+                    ),
+                    (
+                        $4, $1, 1, $2
+                    ),
+                    (
+                        $5, $1, 2, $2
+                    );
+                `,
+                [user_id, projectId, templates[0], templates[1], templates[2]]
+            );
+        }
+
         return res.json(
             new Response(true, "Project added.", newProject.rows[0])
         );

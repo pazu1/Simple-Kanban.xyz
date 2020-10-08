@@ -163,13 +163,20 @@ class APIConnection {
         ).then((res) => res.json());
     }
 
-    async postProject(title) {
+    async postProject(title, withTemplates = false) {
         const enc_title = this.Enc.encrypt(title);
+        let templates = [];
+        if (withTemplates)
+            templates = ["Todo", "Doing", "Done"].map((t) =>
+                this.Enc.encrypt(t)
+            );
+
         const requestConf = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 title: enc_title,
+                templates: templates,
             }),
         };
 

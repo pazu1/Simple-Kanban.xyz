@@ -6,7 +6,6 @@ import { promptTypes } from "./PromptModal";
 const ContextMenuProject = ({ setEditColumns, hideContextMenu }) => {
     return (
         <>
-            <MenuItem>Edit title</MenuItem>
             <MenuItem
                 onClick={() => {
                     setEditColumns(true);
