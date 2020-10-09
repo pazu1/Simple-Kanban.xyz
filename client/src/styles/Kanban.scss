@@ -236,6 +236,16 @@
 
 .columnNew {
     @extend .column;
-    cursor: pointer;
-    max-height: 100px;
+    div {
+        margin-top: 30px;
+        font-size: 0.95em;
+        cursor: pointer;
+        border: 2px solid #888;
+        color: #444;
+        border-style: dashed;
+        border-radius: 6px;
+        height: 290px;
+        line-height: 270px;
+        text-align: center;
+    }
 }

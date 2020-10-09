@@ -162,7 +162,7 @@ function Kanban(props) {
                         }
                         className="columnNew"
                     >
-                        + NEW COLUMN
+                        <div>+ New column</div>
                     </div>
                 ) : null}
             </div>
