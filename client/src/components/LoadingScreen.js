@@ -13,14 +13,14 @@ function LoadingScreen(props) {
             className="loadingScr"
         >
             {nothingLoading ? null : (
-                <div>
-                    {text}
+                <div className="loadingLabel">
                     <div class="lds-ellipsis">
                         <div></div>
                         <div></div>
                         <div></div>
                         <div></div>
                     </div>
+                    {text}
                 </div>
             )}
         </div>
