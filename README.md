@@ -1,4 +1,4 @@
-# Simple-Kanban.xyz
+# [Simple-Kanban.xyz](https://simple-kanban.xyz/)
 
 A web-application for creating kanban boards to manage projects.
 
@@ -8,7 +8,7 @@ A web-application for creating kanban boards to manage projects.
 
 Fair to say this could be described as a bare-bones [trello](https://trello.com/)-clone.
 
-The point of making this web application was for me to teach myself more about full-stack developement. 
+The point of this project was for me to teach myself more about full-stack developement. 
 But the site does work and you can totally use it. Just keep in mind that no warranty is provided.
 
 Unlike other similar sites, Simple-Kanban requires no signing in to use. 
