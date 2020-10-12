@@ -44,18 +44,31 @@
     flex-direction: column;
     width: 260px;
     justify-content: center;
-    overflow-wrap: break-word;
+    hr {
+        border-top: 1px solid $accent;
+        margin-top: 10px;
+        width: 100%;
+    }
+}
+.project {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
     svg {
         height: 20px;
         fill: $accent;
         vertical-align: middle;
-        position: absolute;
-        right: 30px;
+        right: 10px;
+        position: absolute; /* remove box from the normal flow */
     }
-    hr {
-        border-top: 1px solid $accent;
-        margin-top: 10px;
+    p {
+        word-wrap: break-word;
+        margin-top: 0;
+        margin-bottom: 0;
+        width: 190px;
+        text-align:center;
     }
+
 }
 
 .noBoards {

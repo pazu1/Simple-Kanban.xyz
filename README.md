@@ -10,7 +10,7 @@ The point of making this web application was for me to teach myself more about f
 But the site does work and you can totally use it. Just keep in mind that no warranty is provided.
 
 Unlike other similar sites, Simple-Kanban requires no signing in to use. 
-Authorization is done by storing user information in a JSON Web Token cookie.
+Authorization is done with a JSON Web Token, which is stored as a cookie.
 
 Text is encrypted on the client side, so no essential information about your projects is ever stored in plain-text on the server.
 

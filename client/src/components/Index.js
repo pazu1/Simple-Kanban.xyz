@@ -22,27 +22,29 @@ function Index(props) {
     };
     const projectComponents = projects.map((pr, index) => {
         return (
-            <div className="project">
+            <>
                 {index === 0 ? <hr /> : null}
-                <Link
-                    to="/board"
-                    onClick={() => {
-                        loadProject(pr.id, pr.title);
-                    }}
-                >
-                    {pr.title}
-                </Link>
-                <MdTrash
-                    onClick={() => {
-                        setModalActivate({
-                            opened: true,
-                            item: pr,
-                            type: promptTypes.DELETING_PROJECT,
-                        });
-                    }}
-                />
+                <div className="project">
+                    <Link
+                        to="/board"
+                        onClick={() => {
+                            loadProject(pr.id, pr.title);
+                        }}
+                    >
+                        <p>{pr.title}</p>
+                    </Link>
+                    <MdTrash
+                        onClick={() => {
+                            setModalActivate({
+                                opened: true,
+                                item: pr,
+                                type: promptTypes.DELETING_PROJECT,
+                            });
+                        }}
+                    />
+                </div>
                 <hr />
-            </div>
+            </>
         );
     });
 
