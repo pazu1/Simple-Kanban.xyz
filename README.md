@@ -27,3 +27,7 @@ Text is encrypted on the client side, so no essential information about your pro
 | Node.js | Express.js | PostgreSQL |
 | :-: | :-: | :-: |
 | <img src="img/nodejs-logo.png" width="30"> | <img src="img/expressjs-logo.png" width="30"> | <img src="img/psql-logo.png" width="30"> |
+
+## Screenshot
+
+<img src="img/screenshot.png" width="600">
