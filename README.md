@@ -2,6 +2,10 @@
 
 A web-application for creating kanban boards to manage projects.
 
+- REST API
+- Client-side encryption
+- Token based authorization
+
 <img src="img/screenshot.png" width="480">
 
 ## About
