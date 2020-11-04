@@ -2,6 +2,7 @@
 
 A web-application for creating kanban boards to manage projects.
 
+- Kanban-board UI with drag-and-drop functionality
 - REST API
 - Client-side encryption
 - Token based authorization
